@@ -1,11 +1,11 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
-import post from './post.png'
+import post from '../assets/post.png'
 import { useEffect, useState } from 'react';
 import  { useRef } from 'react';
-import {uploadPost} from './controllers/UsersC'
-import net from './nett.png'
-import jobs from './jobs.png'
+import {uploadPost} from '../controllers/UsersC'
+import net from '../assets/nett.png'
+import jobs from '../assets/jobs.png'
 import {Link,useNavigate,Router} from 'react-router-dom'
 function Navi()
 {

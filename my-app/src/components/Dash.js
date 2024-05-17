@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {Chart as ChartJS,CategoryScale,LinearScale,PointElement,LineElement,Title,ArcElement,Tooltip,Legend} from 'chart.js';
 import {Line,Pie} from 'react-chartjs-2'
-import adback from './adback.jpg'
+import adback from '../assets/adback.jpg'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { data,premdata,piedata } from './linedata';
+import { data,premdata,piedata } from './linedata.js';
 import { text } from '@fortawesome/fontawesome-svg-core';
 ChartJS.register(CategoryScale,LinearScale,PointElement,LineElement,ArcElement,Title,Tooltip,Legend);
 function Dash() {

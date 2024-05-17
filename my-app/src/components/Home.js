@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Feed from './feed';
-import { fetchUsers,fetchPosts,fetchFriends, updateWeights } from './controllers/UsersC';
+import { fetchUsers,fetchPosts,fetchFriends, updateWeights } from '../controllers/UsersC.js';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import {BrowserRouter,Routes,Route} from 'react-router-dom'

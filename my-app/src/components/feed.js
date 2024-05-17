@@ -1,10 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import './feed.css';
-import image from './cat.jpg'; // Import your image from the assets folder
-import hart from './heart.png'
-import com from './com.png'
-import share from './share.png'
+import image from '../assets/cat.jpg'; // Import your image from the assets folder
+import hart from '../assets/heart.png'
+import com from '../assets/com.png'
+import share from '../assets/share.png'
 
 import { useEffect, useState ,useRef} from 'react';
 

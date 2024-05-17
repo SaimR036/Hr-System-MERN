@@ -2,10 +2,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import { useEffect, useState } from 'react';
 import  { useRef } from 'react';
-import {uploadPost} from './controllers/UsersC'
+import {uploadPost} from '../controllers/UsersC'
 import { useLocation } from 'react-router-dom';
-import { fetchSimilar } from './controllers/UsersC';
-import Navi from './nav'
+import { fetchSimilar } from '../controllers/UsersC';
+import Navi from '../components/nav'
 function Search()
 {
   const location = useLocation();
