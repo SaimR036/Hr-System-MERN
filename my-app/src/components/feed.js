@@ -24,14 +24,14 @@ function Feed(props)
     
     return (
         <div class="row mt-3">
-        <div className="col-4 container-fluid bg-light ml-auto rounded  container border" >
+        <div className="col-7 col-sm-7 col-md-5 container-fluid bg-light ml-auto rounded  container border" >
     
     <div class="row">
-    <img src={props.Prof} style={{border:'1px solid black',marginLeft:'2px'}} className="w-20 mt-2 rounded-circle col-md-2 col-sm-2 col-2 col-lg-2 align-items-center" alt="Rounded" />
+    <img src={props.Prof} style={{marginLeft:'2px'}} className="w-20 mt-2  col-md-2 col-sm-4 rounded-circle col-4 col-lg-2 align-items-center" alt="Rounded" />
     
     <div className='col-md-6 truncate offset-md-0 col-6 col-sm-6 mt-2'>
-    <div className='truncate col-md-10 offset-md-0 col-sm-6 '>{props.Name} </div>
-    <div className='truncate col-md-10 offset-md-0 col-sm-6 '>{props.Date}</div>
+    <div className='truncate col-md-12 offset-md-0 col-sm-12 '>{props.Name} </div>
+    <div className='truncate col-md-12 offset-md-0 col-sm-12 '>{props.Date}</div>
     </div>
 
     </div>

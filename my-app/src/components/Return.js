@@ -11,7 +11,8 @@ import {
   Routes,
   Navigate
 } from "react-router-dom";
-
+import {Link,useNavigate} from 'react-router-dom'
+import { setPrem } from "../controllers/UsersC";
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 // This is a public sample test API key.
@@ -21,10 +22,21 @@ const stripePromise = loadStripe("pk_test_51LaJyyJRoEbhRvRPnB7q0aRrWVnaPjhNhYrv5
 
 
 const Return = () => {
+  const id = '6640b7ea0f28db8bb8dc6bb3'
+  const navigate = useNavigate();
+  function goto()
+  {
+    navigate('/')
+  }
     const [status, setStatus] = useState(null);
     const [customerEmail, setCustomerEmail] = useState('');
   
     useEffect(() => {
+      async function po()
+      {
+      await setPrem(id)
+      }
+      po()
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       const sessionId = urlParams.get('session_id');
@@ -55,6 +67,6 @@ const Return = () => {
       )
     }
   
-    return null;
+    return <>Thank you for the purchase <button onClick={goto}> Home</button></>;
   }
   export default Return;

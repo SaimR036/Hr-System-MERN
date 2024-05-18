@@ -5,21 +5,32 @@ import { useEffect, useState } from 'react';
 import React from 'react';
 import {BrowserRouter,Routes,Route} from 'react-router-dom'
  import Dash from './Dash'
+ import premi from '../assets/premium.jpeg'
  import Search from './searched'
 import Navi from './nav'
+import {Link,useNavigate,Router} from 'react-router-dom'
+
 export function Home() {
-  let id ='66431ebfefaafd854aa6aa0c';
+  let id ='6640b7ea0f28db8bb8dc6bb3';
   const [users, setUsers] = useState(null);
   const [posts,setPosts]  = useState(null);
   const [dum,setDum] = useState(1);
   const [combinedData, setCombinedData] = useState([]);
   const [loaded,setLoaded] = useState(false)
+  const navig = useNavigate()
+  const [us,setUs] = useState(null)
+
   useEffect(() => {
+    async function qw()
+    {
+      const pe = await fetchUsers(id)
+          setUs(pe)
+    }
+    qw()
     async function fetchData() {
       try {
-       
-
-        updateWeights()
+        
+          
         const friends = await fetchFriends(id);
         console.log('friends',friends)
         friends.map(async (idf)=>{
@@ -50,16 +61,30 @@ export function Home() {
     }
     fetchData()
     
-    }, [dum]);
+
+  },[])
+ 
   
    
 
-  if (combinedData.length==0) {
+  if (combinedData.length==0||us==null) {
       return <div>No data available</div>; // handle case when users or posts are empty
+  }
+
+  function navigate()
+  {
+    navig('/checkout')
   }
   return (
     <>
     <Navi />
+    {
+    console.log(us)}{
+    us!==null && us.prem==0?
+    <button onClick={navigate} className='d-flex align-items-center justify-content-center offset-9 col-2' style={{position:'absolute',backgroundColor:'blue', marginTop:'5%'}}  ><img className='col-12' style={{position:'absolute'}} src={premi}></img></button> 
+    :<></>}
+    
+    <div className='row '>
     {
     combinedData.sort((a, b) => new Date(b.post.Date) - new Date(a.post.Date)).map((data, index) => {
       return (
@@ -73,7 +98,10 @@ export function Home() {
         />
       );
     })
-  }
+  }</div>
+  
+   
+  
     
     
     </>

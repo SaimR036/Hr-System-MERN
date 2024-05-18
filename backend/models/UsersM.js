@@ -4,7 +4,10 @@ const UserSchema = new mongoose.Schema({
     Headline:String,
     Email:String,
     weights:[Number],
-    Photo:String
+    Photo:String,
+    b:Number,
+    ban:Number,
+    prem:Number
 })
 //haa
 const UserModel = mongoose.model("users",UserSchema)

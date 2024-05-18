@@ -3,15 +3,33 @@ import React from 'react';
 import post from '../assets/post.png'
 import { useEffect, useState } from 'react';
 import  { useRef } from 'react';
-import {uploadPost} from '../controllers/UsersC'
+import {fetchUsers, uploadPost} from '../controllers/UsersC'
 import net from '../assets/nett.png'
 import jobs from '../assets/jobs.png'
 import {Link,useNavigate,Router} from 'react-router-dom'
 function Navi()
 {
+  const id ='6640b7ea0f28db8bb8dc6bb3'
   const inputRef = useRef();
+  const [user,setUser] = useState(null)
+  useEffect(()=>{
+    async function les()
+    {
+      const us = await fetchUsers(id)
+      setUser(us)
+    }
+    les()
 
+  },[])
     const navigate = useNavigate()
+    function navjob()
+    {
+      navigate('/jobs')
+    }
+    function navnet()
+    {
+      navigate('/myNetwork')
+    }
     function nav()
     {
       var val = inputRef.current.value;
@@ -94,22 +112,24 @@ function Navi()
   </li>
   <button className='btn '>
     <div className="d-flex flex-column align-items-center">
-    <span className="col-3 d-flex align-items-center justify-content-center"  style={{ height: '25px', width: '25px' }}>
+    <span onClick={navnet} className="col-3 d-flex align-items-center justify-content-center"  style={{ height: '25px', width: '25px' }}>
       <img src={net} style={{ height: '100%' }} alt="Rounded" />
     
     </span>
     <p style={{ fontSize:'12px' }} className="m-0">Network</p>
   </div>
   </button>
+  {user!==null && user['prem']==0?
   <button className='btn '>
     <div className="d-flex flex-column align-items-center">
-    <span className="col-3 d-flex align-items-center justify-content-center"  style={{ height: '25px', width: '25px' }}>
+    <span className="col-3 d-flex align-items-center justify-content-center"  onClick={navjob} style={{ height: '25px', width: '25px' }}>
       <img src={jobs} style={{ height: '100%' }} alt="Rounded" />
     
     </span>
+    
     <p style={{ fontSize:'12px' }} className="m-0">Jobs</p>
   </div>
-  </button>
+  </button>:<></>}
        
       </ul>
     </div>

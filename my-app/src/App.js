@@ -8,8 +8,10 @@ import {BrowserRouter,Routes,Route} from 'react-router-dom'
  import Home from './components/Home'
  import Search from './components/searched'
 import Navi from './components/nav'
+import MyNetwork from './components/myNetwork'
 import Payment from './components/payment'
 import CheckoutForm from './components/checkout'
+import Jobs from './components/jobs'
 import Return from './components/Return'
 export function App() {
  
@@ -24,6 +26,8 @@ export function App() {
     <Route path="/checkout" element={<CheckoutForm />} />
     <Route path="/return" element={<Return />} />
     <Route path='/dashboard' element={<Dash />}/>
+    <Route path = '/jobs' element={<Jobs />}></Route>
+    <Route path='/myNetwork' element = {<MyNetwork />}></Route>
     </Routes>
     </BrowserRouter>
     
