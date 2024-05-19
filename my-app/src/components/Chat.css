@@ -1,0 +1,27 @@
+.chat-container {
+    position: relative;
+    height: 100vh; /* Set the height of the chat container to fill the entire viewport */
+}
+
+.messages {
+    overflow-y: auto; /* Enable vertical scrolling for messages */
+    max-height: calc(100vh - 60px); /* Subtract height of message input area */
+}
+
+.message-input {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background-color: #f7f7f7;
+    border-top: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+}
+
+
+.vertical-line {
+    width: 2px;
+    background-color: #100f0f;
+}

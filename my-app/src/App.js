@@ -7,12 +7,15 @@ import {BrowserRouter,Routes,Route} from 'react-router-dom'
  import Dash from './components/Dash'
  import Home from './components/Home'
  import Search from './components/searched'
+ import Signup from './components/Signup'
+ import Login from './components/login'
 import Navi from './components/nav'
 import MyNetwork from './components/myNetwork'
 import Payment from './components/payment'
 import CheckoutForm from './components/checkout'
 import Jobs from './components/jobs'
 import Return from './components/Return'
+import Chat from './components/Chat'
 export function App() {
  
   return (
@@ -26,8 +29,11 @@ export function App() {
     <Route path="/checkout" element={<CheckoutForm />} />
     <Route path="/return" element={<Return />} />
     <Route path='/dashboard' element={<Dash />}/>
+    <Route path='/Signup' element={<Signup />}></Route>
+    <Route path='/login' element={<Login />}></Route>
     <Route path = '/jobs' element={<Jobs />}></Route>
     <Route path='/myNetwork' element = {<MyNetwork />}></Route>
+    <Route path='/chat' element={<Chat />}></Route>
     </Routes>
     </BrowserRouter>
     

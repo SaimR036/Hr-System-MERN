@@ -9,9 +9,12 @@ import {BrowserRouter,Routes,Route} from 'react-router-dom'
  import Search from './searched'
 import Navi from './nav'
 import {Link,useNavigate,Router} from 'react-router-dom'
-
+import { jwtDecode } from 'jwt-decode';
 export function Home() {
-  let id ='6640b7ea0f28db8bb8dc6bb3';
+  const token = localStorage.getItem('token');
+  const decodedToken = jwtDecode(token);
+  const id = decodedToken.userId;  
+  console.log(id)
   const [users, setUsers] = useState(null);
   const [posts,setPosts]  = useState(null);
   const [dum,setDum] = useState(1);

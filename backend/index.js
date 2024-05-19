@@ -4,22 +4,37 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const Fuse = require('fuse.js')
+const jwt = require('jsonwebtoken');
+require('dotenv').config(); 
+const bcrypt = require('bcrypt');
 const app = express();
-app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 const UserModel = require('./models/UsersM');
 const PostModel = require('./models/PostsM');
 const FModel = require('./models/FriendsM');
+const Users = require('./models/iqrausers.js');
+const Company = require('./models/company.js');
+const Chat = require('./models/chat.js');
+const crypto = require('crypto');
+const sendEmail = require('./sendEmail');
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true // Add this line to enable credentials support
+}));
 
 app.use(express.json());
 
+const jwtSecret = crypto.randomBytes(32).toString('hex');
+console.log(jwtSecret);
 const httpServer = require('http').createServer(app);
 const io = require('socket.io')(httpServer);
 const WebSocket = require('ws');
 const JobModel = require('./models/JobsM');
 const RatModel = require('./models/RatingsM');
 const ReqModel = require('./models/RequestsM');
+const iqraFModel = require('./models/iqraFriendsM.js');
 
 
 
@@ -47,6 +62,262 @@ mongoose.connect('mongodb://localhost:27017/project', { useNewUrlParser: true, u
   
   // Route to handle image upload
   
+  app.post("/signup/person", async (req, res) => {
+    try {
+        const { email, password, firstName, lastName,location,industry,Headline,Photo } = req.body;
+        
+        // Check if the user already exists
+        const existingUser = await Users.findOne({ email });
+        if (existingUser) {
+            console.log('email exists');
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const Name = firstName + ' ' + lastName;
+        const weights = Array.from({length: 100}, () => Math.random());
+        const b = Math.floor(Math.random() * 100); // Generates a random integer between 0 and 99
+        var ban=0;
+        var prem=0;
+        // Create a new user document
+        let user = new Users({
+            email,
+            password: hashedPassword,
+            firstName,
+            lastName,   
+            location,
+            industry,
+            Headline,
+            Photo,
+            Name,
+            weights,
+            b,
+            ban,
+            prem
+           
+        });
+        let result = await user.save();
+       
+    const use = await Users.find({
+        email:email
+    }).maxTimeMS(30000);
+
+        console.log(use)
+        let Uid= use[0]['_id']
+        console.log(Uid)
+    let Val=-1;
+        const jobs = await JobModel.find({});
+        for(var job of jobs)
+          {
+            let Pid = job['_id']
+            let user = new RatModel({
+              Uid,
+              Pid,
+              Val
+             
+          });
+          let result1 = await user.save();
+          }
+        
+        res.status(201).json(result);
+    } catch (error) {
+        console.error('Person Signup Error:', error);
+        // Check if the error is due to validation or internal server error
+        if (error.name === 'ValidationError') {
+            // Return validation errors
+            const errors = Object.values(error.errors).map(err => err.message);
+            res.status(400).json({ error: errors });
+        } else {
+            // Return internal server error
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    }
+});
+
+// Endpoint for company signup
+app.post("/signup/company", async (req, res) => {
+    try {
+        console.log(req.body);
+        const { email, password, name, locations, industry,type } = req.body;
+        
+        // Check if the company already exists
+        const existingCompany = await Company.findOne({ email });
+        if (existingCompany) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create a new company document
+        let newCompany = new Company({
+            email,
+            password: hashedPassword,
+            name,
+            locations,
+            industry,
+            type,
+            
+        });
+
+        // Save the company document
+        let result = await newCompany.save();
+        res.status(201).json(result);
+    } catch (error) {
+        console.error('Company Signup Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
+
+
+// login
+app.post("/login", async (req, res) => {
+  try {
+      const { email, password } = req.body;
+      let user;
+
+      // Check if the user exists in the Users collection
+      user = await Users.findOne({ email });
+
+      // If user doesn't exist in Users collection, check in Company collection
+      if (!user) {
+          const company = await Company.findOne({ email });
+
+          // If user doesn't exist in Company collection, return error
+          if (!company) {
+              return res.status(400).json({ error: 'User does not exist' });
+          }
+
+          // If user exists in Company collection, use company's ID and password for authentication
+          user = { _id: company._id, password: company.password };
+      }
+
+      // Compare the password with the hashed password
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          return res.status(400).json({ error: 'Incorrect password' });
+      }
+
+      // Generate token
+      const token = jwt.sign({ userId: user._id }, '2b35cff4dc0cd006645882f6037eccaa0828d278779e1e53fc7c865c6afe598e', { expiresIn: '1h' });
+
+      // Set the cookie in the response
+      res.cookie(String(user._id), token, {
+          path: "/",
+          expires: new Date(Date.now() + 1000 * 60 * 60), // Token expires in 1 hour
+          httpOnly: true,
+          sameSite: "lax",
+      });
+
+      res.status(200).json({ message: 'Login successful', token });
+      // Send login notification emailcd
+      const emailContent = `Hello ${user.firstName}, you have successfully logged in!`;
+      console.log(user.firstName);
+      await sendEmail(user.email, 'Login Notification', emailContent);
+      
+  } catch (error) {
+      console.error('Login Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// CHAT AREA
+app.post("/send-message", async (req, res) => {
+  try {
+      const { sender_id, receiver_id, message } = req.body;
+
+      const newMessage = new Chat({
+          sender_id,
+          receiver_id,
+          message,
+          time: Date.now()
+      });
+
+      const savedMessage = await newMessage.save();
+      res.status(200).json(savedMessage);
+  } catch (error) {
+      console.error('Send Message Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+app.get("/messages/:userId", async (req, res) => {
+  try {
+      const { userId } = req.params;
+
+      const messages = await Chat.find({
+          $or: [
+              { sender_id: userId },
+              { receiver_id: userId }
+          ]
+      });
+
+      res.status(200).json(messages);
+  } catch (error) {
+      console.error('Retrieve Messages Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+app.get('/users/:userId', async (req, res) => {
+  try {
+      const { userId } = req.params;
+      const user = await Users.findById(userId); 
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+      
+      const username = `${user.firstName} ${user.lastName}`;
+      res.status(200).json({ username});
+  } catch (error) {
+      console.error('Get User Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.get('/getfriend/:userId', async(req, res) => {
+  try{
+  const userId = req.params.userId;
+ 
+  const friends = await iqraFModel.find({
+      $or: [
+          { Fid1: userId },
+          { Fid2: userId }
+      ]
+  }).maxTimeMS(30000);
+     // console.log(friends)
+  // Extract Fid and Fid1 values from the result
+  const friendIds = friends.map(friend => friend.Fid1 === userId ? friend.Fid2 : friend.Fid1);
+  //console.log(friendIds)
+      res.json(friendIds)
+}catch (error) {
+  console.error('Error fetching friends:', error);
+  res.status(500).json({ error: 'Internal server error' });
+}
+});
+
+app.get('/user/:userId', async (req, res) => {
+  try {
+      const { userId } = req.params;
+      const user = await Users.findById(userId); 
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+      res.status(200).json(user); // Return the entire user object
+  } catch (error) {
+      console.error('Get User Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 
@@ -605,6 +876,20 @@ app.get('/session-status', async (req, res) => {
   });
 });
 
+const sendEmailsToUsers = async () => {
+  try {
+    const users = await Users.find({}); // Fetch all users from the database
+
+    for (const user of users) {
+      const emailContent = `Hello ${user.firstName}, this is an auto-generated email!`;
+      await sendEmail(user.email, 'Auto-Generated Email', emailContent);
+    }
+
+    console.log('All emails sent successfully');
+  } catch (error) {
+    console.error('Error sending emails:', error);
+  } 
+};
 
 httpServer.listen(3001, () => {
     console.log("Server is running on port 3001");
