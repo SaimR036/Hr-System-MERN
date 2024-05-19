@@ -83,7 +83,7 @@ export const Signup = () => {
           Headline: formData.Profession,
           Photo: image,
         };
-        
+
         try {
           const response = await fetch('http://localhost:3001/signup/person', {
             method: 'POST',
@@ -92,20 +92,20 @@ export const Signup = () => {
             },
             body: JSON.stringify(postData),
           });
-        
+
           if (response.ok) {
-            // Handle successful response
             const data = await response.json();
+            result = { status: response.status, data };
             console.log('Response data:', data);
           } else {
-            // Handle error response (e.g., non-200 status code)
-            console.error('Error:', response.status);
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Signup failed');
           }
-        } catch (error) {
-          // Handle network errors or exceptions
-          console.error('Fetch error:', error);
+        } catch (fetchError) {
+          console.error('Fetch error:', fetchError);
+          throw fetchError;
         }
-        
+
       } else if (accountType === 'company') {
         if (!formData.companyName || !formData.companyLocations || !formData.companyIndustry || !formData.email || !formData.password) {
           throw new Error("All compulsory fields must be filled.");
@@ -122,8 +122,8 @@ export const Signup = () => {
           type: formData.type,
         });
       }
-  
-      if (result.status === 201) {
+
+      if (result && result.status === 201) {
         const userData = result.data;
         localStorage.setItem("userzs", JSON.stringify(userData));
         console.log(formData);
@@ -138,16 +138,18 @@ export const Signup = () => {
         }
       }
     } catch (error) {
+      console.error('Signup Error:', error); // Improved logging for debugging
       if (error.response && error.response.status === 400) {
         const errorData = error.response.data;
         setError(errorData.error);
         alert(errorData.error); // Show error message to the user
       } else {
-        setError("An error occurred. Please try again."); // Generic error message
-        alert("An error occurred. Please try again."); // Show generic error message to the user
+        setError(error.message || "An error occurred. Please try again."); // More specific error message
+        alert(error.message || "An error occurred. Please try again."); // Show specific error message to the user
       }
     }
   };
+
   
   
   const nextStep = () => {
@@ -281,11 +283,16 @@ export const Signup = () => {
               </div>
               <div> 
               
-              <input accept="image/*" type="file" onChange={check}></input>
+              <label style={{ display: 'block' }}>
+              Upload your Display Picture:
+              </label>
+              <input accept="image/*" type="file" onChange={check} />
+
+
               
               </div>
               <div className='d-grid'>
-                {step !== 1 && <button type='button' className='btn btn-secondary mr-2' onClick={prevStep}>Previous</button>}
+                {step !== 1 && <button type='button' className='btn btn-secondary mr-2 mt-2' onClick={prevStep}>Previous</button>}
                 <button type='submit' className='btn btn-primary mt-1'>Sign Up</button>
               </div>
             </form>
