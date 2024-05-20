@@ -31,7 +31,7 @@ export async function fetchUsers(id) {
     try {
         console.log('users',id)
 
-        const response = await fetch(`http://localhost:3001/getuser/${id}`);
+        const response = await fetch(`http://localhost:3001/user/${id}`);
         if (!response.ok) {
             throw new Error('Failed to fetch users');
         }
@@ -88,6 +88,25 @@ export async function uploadPost(desc,image,Uid) {
     .catch(error => {
         console.error('Error uploading user:', error);
     });
+
+    fetch('http://localhost:3001/sendEmail', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json' // Specify the content type as JSON
+        },
+        body: JSON.stringify({Uid:Uid  }) // Include all arguments in the request body
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Email uploaded successfully');
+        } else {
+            throw new Error('Failed to upload Email');
+        }
+    })
+    .catch(error => {
+        console.error('Error uploading Email:', error);
+    });
+
   }
   
   export async function fetchSimilar(text) {

@@ -11,7 +11,6 @@ const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 const PostModel = require('./models/PostsM');
-const FModel = require('./models/FriendsM');
 const Users = require('./models/iqrausers.js');
 const Company = require('./models/company.js');
 const Chat = require('./models/chat.js');
@@ -36,6 +35,7 @@ const JobModel = require('./models/JobsM');
 const RatModel = require('./models/RatingsM');
 const ReqModel = require('./models/RequestsM');
 const iqraFModel = require('./models/iqraFriendsM.js');
+const Resume = require('./models/resumes.js');
 
 
 
@@ -180,7 +180,12 @@ app.post("/login", async (req, res) => {
   try {
       const { email, password } = req.body;
       let user;
-
+      user = await Users.findOne({email,ban:1})
+      if(user)
+        {
+          res.status(400).json({ error: 'User has been banned' });
+        }
+        else{
       // Check if the user exists in the Users collection
       user = await Users.findOne({ email });
 
@@ -216,10 +221,10 @@ app.post("/login", async (req, res) => {
 
       res.status(200).json({ message: 'Login successful', token });
       // Send login notification emailcd
-      const emailContent = `Hello ${user.firstName}, you have successfully logged in!`;
-      console.log(user.firstName);
-      await sendEmail(user.email, 'Login Notification', emailContent);
-      
+      //const emailContent = `Hello ${user.firstName}, you have successfully logged in!`;
+      //console.log(user.firstName);
+      //await sendEmail(user.email, 'Login Notification', emailContent);
+    }
   } catch (error) {
       console.error('Login Error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -358,7 +363,7 @@ app.get('/getwholefriends/:userId', async(req, res) => {
           try{
           const userId = req.params.userId;
           console.log('node post',userId)
-          const friends = await FModel.find({
+          const friends = await iqraFModel.find({
               $or: [
                   { Fid1: userId },
                   { Fid2: userId }
@@ -368,6 +373,7 @@ app.get('/getwholefriends/:userId', async(req, res) => {
           // Extract Fid and Fid1 values from the result
           const friendIds = friends.map(friend => friend.Fid1 === userId ? friend.Fid2 : friend.Fid1);
           var sends=[]
+          console.log('FIRNED',friendIds)
         for(var user of friendIds)
           {
           const userIdObject = new mongoose.Types.ObjectId(user);
@@ -388,7 +394,7 @@ app.get('/getfriends/:userId', async(req, res) => {
     try{
     const userId = req.params.userId;
     console.log('node post',userId)
-    const friends = await FModel.find({
+    const friends = await iqraFModel.find({
         $or: [
             { Fid1: userId },
             { Fid2: userId }
@@ -505,7 +511,38 @@ app.get('/fetchSimilar/:text', async (req, res) => {
     };
     const fuse = new Fuse(data, options);
     const result = fuse.search(searchQuery);
-    
+    for(var item of result)
+      {
+        var check  = await checkreqs(item['item']['id'])
+        if(check==0)
+          { 
+            var userId = item['item']['id']
+            console.log(userId)
+            const friends = await iqraFModel.find({
+              $or: [
+                  { Fid1: userId },
+                  { Fid2: userId }
+              ]
+          }).maxTimeMS(30000);
+            if(friends.length==1)
+              {
+                  item.flag=2;
+                  console.log('YESS')
+              }
+          }
+          else if(check==-1)
+            {
+              item.flag = 0;
+            }
+            else if(check==1)
+              {
+                item.flag=1;
+              }
+              else{
+                item.flag=-1;
+              }
+              
+      }
     console.log(result)
     res.json(result);
   });
@@ -719,35 +756,44 @@ app.post('/sendReq', async (req, res) => {
   const Sid = req.body.Sid;
   const Rid = req.body.Rid; 
 
-  try {
+
     const newReq = new ReqModel({
       Sid: Sid,
       Rid: Rid
     });
     
     // Save the record
-    newReq.save((err, savedReq) => {
-      if (err) {
-        console.error("Error saving record:", err);
-        res.status(500).send("Internal Server Error");
-      } else {
-        console.log("Record saved successfully:", savedReq);
-        res.status(201).send("Record added successfully");
-  }})
-    res.status(201).send('Image uploaded successfully');
-  } catch (error) {
-      console.error("Error uploading image:", error);
-      res.status(500).send('Internal Server Error');
-  }
+    newReq.save()
 });
 app.post('/makeFriend', async (req, res) => {
   const Sid = req.body.Sid;
   const Rid = req.body.Rid;
 
   try {
-    const newReq = new FModel({
+    const newReq = new iqraFModel({
       Fid1: Sid,
       Fid2: Rid
+    });
+
+    // Save the record
+    await newReq.save();
+
+    console.log("Record saved successfully");
+    res.status(201).send("Record added successfully");
+  } catch (error) {
+    console.error("Error saving record:", error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/subResume', async (req, res) => {
+  const Uid = req.body.Uid;
+  const image = req.body.image;
+
+  try {
+    const newReq = new Resume({
+      Uid:Uid,
+      image:image
     });
 
     // Save the record
@@ -764,21 +810,35 @@ app.post('/makeFriend', async (req, res) => {
 app.post('/remFriend', async (req, res) => {
   const Sid = req.body.Sid;
   const Rid = req.body.Rid; 
+  console.log(Sid,Rid)
+  const query = { Fid1: Sid, Fid2:Rid };
 
-  const query = { Sid: Sid, Rid:Rid};
-FModel.findOneAndDelete(query, (err, deletedDoc) => {
-  if (err) {
+  try {
+    const deletedDoc = await iqraFModel.findOneAndDelete(query);
+    if (!deletedDoc) {
+      console.log("No matching record found");
+    } else {
+      console.log("Record deleted successfully:", deletedDoc);
+
+    }
+  } catch (err) {
     console.error("Error deleting record:", err);
-    res.status(500).send("Internal Server Error");
-  } else if (!deletedDoc) {
-    console.log("No matching record found");
-    res.status(404).send("Record not found");
-  } else {
-    console.log("Record deleted successfully:", deletedDoc);
-    res.status(200).send("Record removed successfully");
   }
+  const query1 = { Fid1: Rid, Fid2:Sid };
+
+  try {
+    const deletedDoc = await iqraFModel.findOneAndDelete(query1);
+    if (!deletedDoc) {
+      console.log("No matching record found");
+    } else {
+      console.log("Record deleted successfully:", deletedDoc);
+    }
+  } catch (err) {
+    console.error("Error deleting record:", err);
+  }
+  res.status(200).send("Lol");
 });
-})
+
 app.post('/remReq', async (req, res) => {
   const Sid = req.body.Sid;
   const Rid = req.body.Rid;
@@ -835,20 +895,36 @@ app.get('/session-status', async (req, res) => {
     customer_email: session.customer_details.email
   });
 });
-
-const sendEmailsToUsers = async () => {
+app.post('/sendEmail',async (req, res) => {
+  const userId = req.body.Uid;
+  console.log('ID IS ',userId)
   try {
-    const users = await Users.find({}); // Fetch all users from the database
-
-    for (const user of users) {
-      const emailContent = `Hello ${user.firstName}, this is an auto-generated email!`;
+    const friends = await iqraFModel.find({
+      $or: [
+          { Fid1: userId },
+          { Fid2: userId }
+      ]
+  }).maxTimeMS(30000);
+     // console.log(friends)
+  // Extract Fid and Fid1 values from the result
+  const friendIds = friends.map(friend => friend.Fid1 === userId ? friend.Fid2 : friend.Fid1);
+   // Fetch all users from the database
+   for (id of friendIds)
+    {
+   const user = await Users.findById(id);  
+    
+      const emailContent = `Hello ${user.firstName}, Your friends recently posted check out`;
       await sendEmail(user.email, 'Auto-Generated Email', emailContent);
-    }
-
+    
+  }
     console.log('All emails sent successfully');
   } catch (error) {
     console.error('Error sending emails:', error);
   } 
+      
+});
+const sendEmailsToUsers = async (userId) => {
+ 
 };
 require('dotenv/config')
 

@@ -3,5 +3,5 @@ const FriendsSchema = new mongoose.Schema({
     Fid1:String,
     Fid2:String
 })
-const FModel = mongoose.model("friends",FriendsSchema)
+const FModel = mongoose.model("iqrafriends",FriendsSchema)
 module.exports = FModel

@@ -97,7 +97,7 @@ function Dash() {
     }
   return(
     <>
-<div style={{ backgroundColor: '#003333', display: 'flex', flexDirection: 'column' }}>
+<div style={{ backgroundColor: '#003333', display: 'flex', flexDirection: 'column' ,minHeight:'737px'}}>
     <div className='col-4'>
         <p style={{color:'white', position:'absolute',marginLeft:'2px'}}>
             Admin Dashboard
