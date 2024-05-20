@@ -7,9 +7,12 @@ import {fetchUsers, uploadPost} from '../controllers/UsersC'
 import net from '../assets/nett.png'
 import jobs from '../assets/jobs.png'
 import {Link,useNavigate,Router} from 'react-router-dom'
+import { jwtDecode } from 'jwt-decode';
 function Navi()
 {
-  const id ='6640b7ea0f28db8bb8dc6bb3'
+  const token = localStorage.getItem('token');
+            const decodedToken = jwtDecode(token);
+            const id = decodedToken.userId;
   const inputRef = useRef();
   const [user,setUser] = useState(null)
   useEffect(()=>{
@@ -45,7 +48,6 @@ function Navi()
       reader.onload = () => {
         console.log('lololo')
         const textAreaValue = textAreaRef.current.value;
-        const Uid='66431ebfefaafd854aa6aa0c'
         console.log(reader.result)
         SetImage(reader.result)
       }
@@ -68,8 +70,7 @@ function Navi()
         console.log('lololo1')
 
         const textAreaValue = textAreaRef.current.value;
-        const Uid='66431ebfefaafd854aa6aa0c'
-        uploadPost(textAreaValue,image,Uid);
+        uploadPost(textAreaValue,image,id);
         // Now you can use textAreaValue in your code
       };
       const handleClick = () => {

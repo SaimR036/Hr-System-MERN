@@ -25,12 +25,12 @@ export function App() {
     <Routes>
     
     <Route path='/search' element={<Search/>}></Route>
-    <Route path='/' element={<Home />}></Route>
+    <Route path='/Home' element={<Home />}></Route>
     <Route path="/checkout" element={<CheckoutForm />} />
     <Route path="/return" element={<Return />} />
     <Route path='/dashboard' element={<Dash />}/>
     <Route path='/Signup' element={<Signup />}></Route>
-    <Route path='/login' element={<Login />}></Route>
+    <Route path='/' element={<Login />}></Route>
     <Route path = '/jobs' element={<Jobs />}></Route>
     <Route path='/myNetwork' element = {<MyNetwork />}></Route>
     <Route path='/chat' element={<Chat />}></Route>

@@ -26,7 +26,7 @@ const Return = () => {
   const navigate = useNavigate();
   function goto()
   {
-    navigate('/')
+    navigate('/Home')
   }
     const [status, setStatus] = useState(null);
     const [customerEmail, setCustomerEmail] = useState('');

@@ -30,7 +30,7 @@ export const Login = () => {
             const token = response.data.token;
             localStorage.setItem('token', token);
             setIsLoggedIn(true);
-            navigate('/', { replace: true });
+            navigate('/Home', { replace: true });
             alert('Login successful');
         } catch (error) {
             console.error('Login Error:', error);

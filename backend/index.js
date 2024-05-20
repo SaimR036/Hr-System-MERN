@@ -10,7 +10,6 @@ const bcrypt = require('bcrypt');
 const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-const UserModel = require('./models/UsersM');
 const PostModel = require('./models/PostsM');
 const FModel = require('./models/FriendsM');
 const Users = require('./models/iqrausers.js');
@@ -371,7 +370,7 @@ app.get('/getwholefriends/:userId', async(req, res) => {
           {
           const userIdObject = new mongoose.Types.ObjectId(user);
 
-          const obj = await UserModel.findById(userIdObject).maxTimeMS(30000)
+          const obj = await Users.findById(userIdObject).maxTimeMS(30000)
             sends.push(obj)
           }
           //const jsonToSend = JSON.stringify(sends);
@@ -421,7 +420,7 @@ app.get('/getPending/:userId',  (req, res) => {
           {
           const userIdObject = new mongoose.Types.ObjectId(user['Sid']);
 
-          const obj = await UserModel.findById(userIdObject).maxTimeMS(30000)
+          const obj = await Users.findById(userIdObject).maxTimeMS(30000)
             sends.push(obj)
           }
           //const jsonToSend = JSON.stringify(sends);
@@ -440,7 +439,7 @@ app.get('/getuser/:userId', (req, res) => {
 
     const userIdObject = new mongoose.Types.ObjectId(userId);
 
-    UserModel.findById(userIdObject).maxTimeMS(30000)
+    Users.findById(userIdObject).maxTimeMS(30000)
         .then(users => res.json(users))
         .catch(err => {
             console.error("Error fetching users:", err);
@@ -451,7 +450,7 @@ app.get('/getallusers', (req, res) => {
 
 
 
-  UserModel.find({}).maxTimeMS(30000)
+  Users.find({}).maxTimeMS(30000)
       .then(users => res.json(users))
       .catch(err => {
           console.error("Error fetching users:", err);
@@ -462,7 +461,7 @@ app.get('/getallusers', (req, res) => {
 //   const randomWeights = Array.from({length: 100}, () => Math.random());
 //   console.log('gone')
 //   try {
-//     await UserModel.updateMany(
+//     await Users.updateMany(
 //       {}, 
 //       { $set: { weights: randomWeights } }
 //     );
@@ -507,7 +506,7 @@ async function checkreqs(id)
 }
 app.get('/fetchSimilar/:text', async (req, res) => {
     const searchQuery = req.params.text;
-    const data  = await UserModel.find({}).maxTimeMS(30000)
+    const data  = await Users.find({}).maxTimeMS(30000)
     console.log(searchQuery)
     const options = {
       keys: ['Name'],
@@ -555,7 +554,7 @@ app.get('/ai', async (req, res) => {
     var W=[]
     var X=[]
     var b=[]
-    const users  = await UserModel.find({}).maxTimeMS(30000)
+    const users  = await Users.find({}).maxTimeMS(30000)
     const jobs = await JobModel.find({});
     let Y = new Array(users.length-1).fill().map(() => new Array(jobs.length).fill(0));
     let R = new Array(users.length-1).fill().map(() => new Array(jobs.length).fill(0));
@@ -623,7 +622,7 @@ app.get('/ai', async (req, res) => {
           {
         try  {
           console.log(user['id'])
-          await UserModel.updateOne(
+          await Users.updateOne(
             { _id: user['id'] }, 
             { $set: { weights: W[l], b: B[0][l]} }
           );
@@ -662,7 +661,7 @@ function sigmoid(x){
 app.get('/banUser/:userId',async (req, res) => {
   const userId = req.params.userId;
   try  {
-    await UserModel.updateOne(
+    await Users.updateOne(
       { _id: userId }, 
       { $set: { ban:1} }
     );
@@ -676,7 +675,7 @@ app.get('/banUser/:userId',async (req, res) => {
 app.get('/setPrem/:userId',async (req, res) => {
   const userId = req.params.userId;
   try  {
-    await UserModel.updateOne(
+    await Users.updateOne(
       { _id: userId }, 
       { $set: { prem:1} }
     );
@@ -690,7 +689,7 @@ app.get('/setPrem/:userId',async (req, res) => {
 app.get('/UnbanUser/:userId',async (req, res) => {
   const userId = req.params.userId;
   try  {
-    await UserModel.updateOne(
+    await Users.updateOne(
       { _id: userId }, 
       { $set: { ban:0} }
     );
@@ -705,7 +704,7 @@ app.get('/getJobs/:id', async (req, res) => {
   var W=[]
   var X=[]
   var b=[]
-  const user  = await UserModel.find({_id:id}).maxTimeMS(30000)
+  const user  = await Users.find({_id:id}).maxTimeMS(30000)
   const jobs = await JobModel.find({});
   var k=0;
   var sc=[]
@@ -746,7 +745,7 @@ app.post('/upload', async (req, res) => {
     // Convert base64-encoded image data to a buffer  
     // Save the image data to MongoDB
     try {
-        const newImage = new PostModel({ Description:req.body.Description,Image:imageData,Uid:req.body.Uid,Date:currentDate});
+        const newImage = new PostModel({ Description:req.body.Description,Image:imageData,Uid:req.body.Uid,Date:currentDate,likes:[],comments:[],});
         await newImage.save();
         res.status(201).send('Image uploaded successfully');
     } catch (error) {

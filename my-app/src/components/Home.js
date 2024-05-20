@@ -70,9 +70,7 @@ export function Home() {
   
    
 
-  if (combinedData.length==0||us==null) {
-      return <div>No data available</div>; // handle case when users or posts are empty
-  }
+
 
   function navigate()
   {
@@ -81,6 +79,7 @@ export function Home() {
   return (
     <>
     <Navi />
+    
     {
     console.log(us)}{
     us!==null && us.prem==0?
@@ -88,8 +87,11 @@ export function Home() {
     :<></>}
     
     <div className='row '>
+      
     {
-    combinedData.sort((a, b) => new Date(b.post.Date) - new Date(a.post.Date)).map((data, index) => {
+    combinedData.length === 0 ? (
+      <p>No Friend Posts</p>
+    ) :  combinedData.sort((a, b) => new Date(b.post.Date) - new Date(a.post.Date)).map((data, index) => {
       return (
         <Feed 
           key={index}
