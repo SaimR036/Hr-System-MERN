@@ -4,7 +4,8 @@ const JobSchema = new mongoose.Schema({
     Date:String,
     Image:[String],
     Uid:String,
-    features:[Number]
+    features:[Number],
+    resumes:[String]
 })
 //haa
 const JobModel = mongoose.model("jobs",JobSchema)

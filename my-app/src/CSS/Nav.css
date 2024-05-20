@@ -1,0 +1,89 @@
+.custom-navbar {
+   
+    height: 55px; 
+    /* Add any additional styles as needed */
+  }
+  .cont::after {
+    content: "";
+    display: block;
+    border-bottom: 1px solid #b9b9b9; /* Adjust the color and style as needed */
+  }
+
+/* ul li a img{
+  width: 70%;
+  height: 80%;
+  margin: 0px;
+  background-color: antiquewhite;
+}
+ul li{
+  background-color: aquamarine;
+  width: 90px;
+  height: 80px;
+  overflow: hidden;
+}
+ ul li a{
+  background-color: rgb(110, 110, 116);
+  margin-bottom: 0px;
+  font-size: small;
+  height: auto;
+}
+ul{
+  margin: 0px;
+} */
+
+
+.nav-logo {
+  width: 24px; /* Adjust the width as needed */
+  height: 24px; /* Adjust the height as needed */
+  margin-bottom: 0;
+}
+
+.nav-link {
+  display: flex; /* Make link content display as flex */
+  flex-direction: column; /* Display the content in a column layout */
+  align-items: center; /* Center the content horizontally */
+  text-align: center;
+  font-size: small;
+  
+}
+.nav-item{
+  margin-left: 10px;
+  
+  margin-left: 10px;
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+.navbar-nav .nav-item {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+nav{
+  margin-top: 0;
+  /* background-color: rgb(202, 202, 224); */
+  margin-bottom: 0;
+}
+
+.container{
+  /* background-color: aqua; */
+}
+.logo {
+  margin-right: 450px; /* Adjust margin as needed */
+}
+
+.dropdown-menu {
+  overflow: visible !important; 
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  border: 1px solid #d1d1d1; /* Border color */
+}
+
+.dropdown-item {
+  padding: 0.5rem 1.5rem; /* Adjust padding */
+  font-size: 14px; /* Adjust font size */
+  color: #333; /* Text color */
+}
+
+.dropdown-item:hover {
+  background-color: #f3f3f3; /* Hover background color */
+}

@@ -15,6 +15,8 @@ const FModel = require('./models/FriendsM');
 const Users = require('./models/iqrausers.js');
 const Company = require('./models/company.js');
 const Chat = require('./models/chat.js');
+const Posts = require('./models/Posts');
+
 const crypto = require('crypto');
 const sendEmail = require('./sendEmail');
 
@@ -433,19 +435,7 @@ app.get('/getPending/:userId',  (req, res) => {
       });
 });
 
-app.get('/getuser/:userId', (req, res) => {
-    const userId = req.params.userId;
-    console.log('node user',userId)
 
-    const userIdObject = new mongoose.Types.ObjectId(userId);
-
-    Users.findById(userIdObject).maxTimeMS(30000)
-        .then(users => res.json(users))
-        .catch(err => {
-            console.error("Error fetching users:", err);
-            res.status(500).json({ error: "An internal server error occurred" });
-        });
-});
 app.get('/getallusers', (req, res) => {
 
 
@@ -515,37 +505,7 @@ app.get('/fetchSimilar/:text', async (req, res) => {
     };
     const fuse = new Fuse(data, options);
     const result = fuse.search(searchQuery);
-    for(var item of result)
-      {
-        var check  = await checkreqs(item['item']['id'])
-        if(check==0)
-          { 
-            var userId = item['item']['id']
-            console.log(userId)
-            const friends = await FModel.find({
-              $or: [
-                  { Fid1: userId },
-                  { Fid2: userId }
-              ]
-          }).maxTimeMS(30000);
-            if(friends.length==1)
-              {
-                  item.flag=2;
-              }
-          }
-          else if(check==-1)
-            {
-              item.flag = 0;
-            }
-            else if(check==1)
-              {
-                item.flag=1;
-              }
-              else{
-                item.flag=-1;
-              }
-              
-      }
+    
     console.log(result)
     res.json(result);
   });
@@ -705,6 +665,7 @@ app.get('/getJobs/:id', async (req, res) => {
   var X=[]
   var b=[]
   const user  = await Users.find({_id:id}).maxTimeMS(30000)
+  console.log(user)
   const jobs = await JobModel.find({});
   var k=0;
   var sc=[]
@@ -889,6 +850,754 @@ const sendEmailsToUsers = async () => {
     console.error('Error sending emails:', error);
   } 
 };
+require('dotenv/config')
+
+// app.use(bodyParser.json())
+// app.use(bodyParser.urlencoded({extended:false}))
+
+
+
+
+
+
+
+
+
+
+
+
+console.log("in roites");
+
+
+
+app.get('/user/:id', async (req, res) => {
+  const userId = req.params.id;
+  console.log("Fetching user with ID:", userId);
+  try {
+      const userData = await User.findById(userId).exec();
+      if (!userData) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(userData);
+  } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+app.get('/singleuser/:userid', async (req, res) => {
+  const userId = req.params.userid; // Get the user ID from the request parameters
+  try {
+    console.log("in single user");
+      const userData = await User.findById(userId).exec(); // Find the user by ID
+      if (!userData) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(userData); // Send the user data as JSON response
+  } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/activity/:userId', async (req, res) => {
+  console.log("here in /activity");
+    try {
+      const userId = req.params.userId;
+      // Fetch posts associated with the specified user ID
+      const posts = await Posts.find({ author: userId }).populate('author', 'firstName lastName headline profilePicture connections').populate('comments.author', 'firstName lastName headline');; // Populate the author field with user's first and last name
+      console.log(posts)
+      res.json(posts);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  
+
+  app.get('/experience/:userId',async(req,res)=>{
+
+    const userId = req.params.userId;
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+
+      const experiences = user.experience;
+      res.json(experiences);
+  } catch (error) {
+      console.error('Error fetching experiences:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+
+
+
+
+  });
+  app.get('/education/:userId',async(req,res)=>{
+
+    const userId = req.params.userId;
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+
+      const education = user.education;
+      res.json(education);
+  } catch (error) {
+      console.error('Error fetching education:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+
+
+
+
+  });
+
+  app.delete('/education/:userid/:educationId', async (req, res) => {
+    try {
+        const { userid, educationId } = req.params;
+
+        // Find the user by userid
+        const user = await User.findById(userid);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find the index of the experience with the given experienceId
+        const educationIndex = user.education.findIndex(edu => edu._id == educationId);
+          console.log("exp",educationId);
+        if (educationIndex === -1) {
+            return res.status(404).json({ message: 'Experience not found' });
+        }
+
+        // Remove the experience from the experiences array
+        user.education.splice(educationIndex, 1);
+
+        // Save the updated user object
+        await user.save();
+
+        return res.status(200).json({ message: 'Experience deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting experience:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
+
+
+  app.post('/createpost',async (req, res) => {
+    try {
+        // Extract post data from the request body
+        const { content,file,author, likes, comments, createdAt } = req.body;
+        console.log("in create post");
+
+        // Create a new post instance
+        const newPost = new Posts({
+            content,
+            image:file,
+            authorType:"users",
+            author,
+            likes,
+            comments,
+            createdAt
+            // Add other fields as needed
+        });
+
+        // Save the new post to the database
+        await newPost.save();
+
+        // Respond with a success message
+        res.status(201).json({ message: 'Post created successfully', postId: newPost._id });
+    } catch (error) {
+        console.error('Error creating post:', error);
+        // If an error occurs, respond with an error message
+        res.status(500).json({ message: 'Failed to create post' });
+    }
+});
+
+
+app.delete('/experience/:userid/:experienceId', async (req, res) => {
+    try {
+        const { userid, experienceId } = req.params;
+
+        // Find the user by userid
+        const user = await User.findById(userid);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find the index of the experience with the given experienceId
+        const experienceIndex = user.experience.findIndex(exp => exp._id == experienceId);
+          console.log("exp",experienceId);
+        if (experienceIndex === -1) {
+            return res.status(404).json({ message: 'Experience not found' });
+        }
+
+        // Remove the experience from the experiences array
+        user.experience.splice(experienceIndex, 1);
+
+        // Save the updated user object
+        await user.save();
+
+        return res.status(200).json({ message: 'Experience deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting experience:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.post('/experience/:userid', async (req, res) => {
+    const { userid } = req.params; // Extract userid from URL parameters
+    const { title, company, startDate, endDate, location, locationType, description } = req.body; // Extract data from request body
+    console.log("here in addingn new exp")
+    try {
+        // Find the user by userid
+        const user = await User.findById(userid);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Create a new experience
+        const newExperience = {
+            title: title,
+            company: company,
+            startDate: startDate,
+            endDate: endDate,
+            location: location,
+            locationType: locationType,
+            description: description
+        };
+
+         console.log( user.lastName)
+        user.experience = user.experience || []; // Initialize experiences array if it's undefined
+        console.log("User after initializing experience array:", user);
+user.experience.push(newExperience);
+console.log("User after pushing newExperience:", user);
+
+        // Save the updated user object
+        await user.save();
+
+        // Send a success response
+        res.status(201).json({ message: 'Experience added successfully', experience: newExperience });
+    } catch (error) {
+        console.error('Error adding experience:', error);
+        // Send an error response
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
+app.post('/education/:userid', async (req, res) => {
+  const { userid } = req.params; // Extract userid from URL parameters
+  const { institution, degree, startDate, endDate,fieldOfStudy } = req.body; // Extract data from request body
+  console.log("here in addingn new exp",startDate,endDate)
+  try {
+      // Find the user by userid
+      const user = await User.findById(userid);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Create a new experience
+      const newEducation = {
+        institution:institution,
+        degree: degree,
+        startDate: startDate,
+        endDate: endDate,
+       fieldOfStudy: fieldOfStudy
+      };
+
+       console.log( user.firstName)
+      user.education = user.education || []; // Initialize experiences array if it's undefined
+      console.log("User after initializing education array:", user);
+user.education.push(newEducation);
+console.log("User after pushing neweducation:", user);
+
+      // Save the updated user object
+      await user.save();
+
+      // Send a success response
+      res.status(201).json({ message: 'education added successfully', education: newEducation });
+  } catch (error) {
+      console.error('Error adding education:', error);
+      // Send an error response
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/skills/:userId', async(req,res)=>{
+    console.log("adding skill")
+    
+    try {
+        const userId = req.params.userId;
+        const { skill } = req.body;
+        const user = await User.findById(userId);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        user.skills.push(skill);
+        await user.save();
+        res.status(201).json({ message: 'Skill added successfully' });
+      } catch (error) {
+        console.error('Error adding skill:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    
+    
+    });
+
+
+
+
+app.delete('/skills/:userId/:skillId', async (req, res) => {
+    console.log("deleting skill")
+    try {
+        const userId = req.params.userId;
+        const skillId = req.params.skillId;
+        const user = await User.findById(userId);
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        user.skills = user.skills.filter((skill) => skill !== skillId);
+        await user.save();
+        res.status(200).json({ message: 'Skill deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting skill:', error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+  });
+  
+
+  app.post('/like/:postId', async (req, res) => {
+    const { postId } = req.params;
+    const { userId } = req.body; // Assuming you're sending the userId in the request body
+  
+    try {
+      // Retrieve the post document
+      const post = await Posts.findById(postId);
+  
+      // Check if the post exists
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      // Check if the user already liked the post
+      if (post.likes.includes(userId)) {
+        return res.status(400).json({ error: 'User already liked the post' });
+      }
+  
+      // Add the user's ObjectId to the likes array
+      post.likes.push(userId);
+  
+      // Save the updated post document
+      await post.save();
+  
+      res.status(200).json({ message: 'Post liked successfully' , post});
+    } catch (error) {
+      console.error('Error liking post:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+  });
+
+
+  app.post('/comment/:postId', async (req, res) => {
+    const { postId } = req.params;
+    const { userId, content, createdDate } = req.body; // Assuming you're sending the userId, content, and createdDate in the request body
+
+    try {
+        // Retrieve the post document
+        const post = await Posts.findById(postId);
+
+        // Check if the post exists
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Add the new comment to the post
+        post.comments.push({ content:content, author: userId, createdAt: createdDate });
+
+        // Save the updated post document
+        const updatedPost = await post.save();
+
+        // Populate the author fields for comments
+        await updatedPost.populate({
+            path: 'comments.author',
+            select: 'firstName lastName',
+        });
+
+        res.status(200).json(updatedPost);
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+app.delete('/delpost/:postId', async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const post = await Posts.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    await Posts.deleteOne({ _id: postId });
+    res.status(200).json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+// httpServer.listen(3001, () => {
+//     console.log("Server is running on port 3001");
+// });
+
+
+
+
+
+
+
+
+////Company APIS
+
+
+//get company initial. this is not by id
+app.get('/company/:companyId', async (req, res) => {
+  const { companyId } = req.params; // Extract company ID from the route parameters
+  try {
+    // Fetch company data by ID
+    const companyData = await Company.findById(companyId).exec();
+    
+    // Check if the company data is found
+    if (!companyData) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    
+    // Send the company data as JSON
+    res.json(companyData);
+  } catch (error) {
+    console.error('Error fetching company data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+//fetches company posts
+app.get('/Cp/:userId', async (req, res) => {
+  console.log("here in /Cp");
+  try {
+    const userId = req.params.userId;
+
+    // Fetch posts by the specific user
+    const userPosts = await CPosts.find({ author: userId })
+      .populate('author', 'name tagline')
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'author',
+          model: 'users',
+          select: 'firstName lastName headline', // Select the fields for users
+          match: { authorType: 'user' } // Filter comments where authorType is 'user'
+        }
+      })
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'author',
+          model: 'companies',
+          select: 'name tagline', // Select the fields for companies
+          match: { authorType: 'company' } // Filter comments where authorType is 'company'
+        }
+      });
+
+    console.log("userPosts:", userPosts);
+    res.json(userPosts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+//create company posts
+app.post('/createcompanypost',async (req, res) => {
+  try {
+      // Extract post data from the request body
+      const { content,file,author, likes, comments, createdAt } = req.body;
+      console.log("in create post : ", author);
+
+      // Create a new post instance
+      const newPost = new CPosts({
+          content,
+          image:file,
+          author,
+          likes,
+          comments,
+          createdAt
+          // Add other fields as needed
+      });
+      console.log(newPost);
+      // Save the new post to the database
+      await newPost.save();
+
+      // Respond with a success message
+      res.status(201).json({ message: 'Com Post created successfully', postId: newPost._id });
+  } catch (error) {
+      console.error('Error creating  com post:', error);
+      // If an error occurs, respond with an error message
+      res.status(500).json({ message: 'Failed to create post' });
+  }
+});
+
+
+//finds a single company based on ID
+app.get('/singlecomp/:userid', async (req, res) => {
+  const userId = req.params.userid; // Get the user ID from the request parameters
+  try {
+    console.log("in single user");
+      const userData = await Company.findById(userId).exec(); // Find the user by ID
+      if (!userData) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+      res.json(userData); // Send the user data as JSON response
+  } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+app.post('/Companylike/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { userId } = req.body; // Assuming you're sending the userId in the request body
+
+  try {
+    // Retrieve the post document
+    const post = await CPosts.findById(postId);
+
+    // Check if the post exists
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check if the user already liked the post
+    if (post.likes.includes(userId)) {
+      return res.status(400).json({ error: 'User already liked the post' });
+    }
+
+    // Add the user's ObjectId to the likes array
+    post.likes.push(userId);
+
+    // Save the updated post document
+    await post.save();
+
+    res.status(200).json({ message: 'Post liked successfully' , post});
+  } catch (error) {
+    console.error('Error liking post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+
+});
+
+
+app.post('/Companycomment/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { userId, content, createdDate } = req.body; // Assuming you're sending the userId, content, and createdDate in the request body
+
+  try {
+      // Retrieve the post document
+      const post = await CPosts.findById(postId);
+
+      // Check if the post exists
+      if (!post) {
+          return res.status(404).json({ error: 'Post not found' });
+      }
+      console.log("userid in company comment",userId);
+
+      // Add the new comment to the post
+      post.comments.push({ content:content, author: userId,authorType:'companies' ,createdAt: createdDate });
+
+      // Save the updated post document
+      const updatedPost = await post.save();
+
+       console.log("updated Post:",updatedPost);
+
+      res.status(200).json(updatedPost);
+  } catch (error) {
+      console.error('Error adding comment:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+app.delete('/Companydelpost/:postId', async (req, res) => {
+const { postId } = req.params;
+
+try {
+  const post = await CPosts.findById(postId);
+  if (!post) {
+    return res.status(404).json({ error: 'Post not found' });
+  }
+  console.log("in com del", post)
+
+  await CPosts.deleteOne({ _id: post._id });
+  res.status(200).json({ message: 'Post deleted successfully' });
+} catch (error) {
+  console.error('Error deleting post:', error);
+  res.status(500).json({ error: 'Internal Server Error' });
+}
+});
+
+
+
+
+
+//JOBS
+
+
+
+app.get('/jobs/:companyId', async (req, res) => {
+  try {
+      // Extract company ID from request parameters
+      const { companyId } = req.params;
+
+      // Fetch job posts with matching company ID from the database
+      const jobs = await JobModel.find({ Uid: companyId }).populate('Uid','name');
+
+      // Send a success response with the fetched job posts
+      res.status(200).json(jobs);
+  } catch (error) {
+      // Handle errors
+      console.error('Error fetching job posts:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/jobs', async (req, res) => {
+  try {
+      //const features = Array.from({length: 100}, () => Math.random());
+      // Extract data from request body
+      const { Description, Date, Image, Uid, features, resumes } = req.body;
+
+      // Create a new job post instance
+      const newJob = new JobModel({
+          Description,
+          Date,
+          Image,
+          Uid,
+          features,
+          resumes:[]
+      });
+
+      // Save the job post to the database
+      const savedJob = await newJob.save();
+      const use = await JobModel.find({
+        Uid:Uid
+    }).maxTimeMS(30000);
+
+        console.log(use)
+        let Pid= use[0]['_id']
+        console.log(Pid)
+    let Val=-1;
+        const users= await Users.find({});
+        for(var user of users)
+          {
+            let Uid = user['_id']
+            let jo = new RatModel({
+              Uid,
+              Pid,
+              Val
+             
+          });
+          let result1 = await jo.save();
+          }
+        
+      // Send a success response with the saved job post
+      res.status(201).json(savedJob);
+  } catch (error) {
+      // Handle errors
+      console.error('Error creating job post:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+app.delete('/jobs/:postId', async (req, res) => {
+  try {
+    // Extract the post ID from the request parameters
+    const { postId } = req.params;
+
+    // Find and delete the job post with the specified post ID
+    const deletedPost = await JobModel.findByIdAndDelete(postId);
+
+    // Check if the job post exists
+    if (!deletedPost) {
+      // If the job post does not exist, send a 404 status with a corresponding message
+      return res.status(404).json({ message: 'Job post not found' });
+    }
+
+    // If the job post was deleted successfully, send a success response with the deleted job post
+    res.json({ message: 'Job post deleted successfully', deletedPost });
+  } catch (error) {
+    // Handle errors
+    console.error('Error deleting job post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/upload-resumes/:postId', async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { resumes } = req.body; // Assuming resumes is an array of base64 encoded strings
+
+    const post = await JobModel.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Add the base64 encoded resumes to the post's resumes array
+    post.resumes.push(...resumes);
+
+    // Save the updated post with the new resumes
+    await post.save();
+
+    res.status(200).json({ message: 'Resumes uploaded successfully' });
+  } catch (error) {
+    console.error('Error uploading resumes:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
+
 
 httpServer.listen(3001, () => {
     console.log("Server is running on port 3001");

@@ -12,8 +12,10 @@ import {BrowserRouter,Routes,Route} from 'react-router-dom'
 import Navi from './components/nav'
 import MyNetwork from './components/myNetwork'
 import Payment from './components/payment'
+import CompanyProfile from './components/CompanyProfile'
 import CheckoutForm from './components/checkout'
 import Jobs from './components/jobs'
+import UserProfile from './components/UserProfile'
 import Return from './components/Return'
 import Chat from './components/Chat'
 export function App() {
@@ -31,9 +33,11 @@ export function App() {
     <Route path='/dashboard' element={<Dash />}/>
     <Route path='/Signup' element={<Signup />}></Route>
     <Route path='/' element={<Login />}></Route>
+    <Route path='/userProfile' element={<UserProfile />}></Route>
     <Route path = '/jobs' element={<Jobs />}></Route>
     <Route path='/myNetwork' element = {<MyNetwork />}></Route>
     <Route path='/chat' element={<Chat />}></Route>
+    <Route path='/companyProfile' element={<CompanyProfile />}></Route>
     </Routes>
     </BrowserRouter>
     

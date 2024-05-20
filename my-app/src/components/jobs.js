@@ -4,12 +4,16 @@ import React from 'react';
 import {BrowserRouter,Routes,Route} from 'react-router-dom'
 import { fetchJobs } from '../controllers/UsersC';
 import Navi from './nav'
+import { jwtDecode } from 'jwt-decode';
 export function Jobs()
 {
+    const token = localStorage.getItem('token');
+            const decodedToken = jwtDecode(token);
+            const userId = decodedToken.userId;
     const [job,SetJobs]= useState([])
     useEffect(()=>{
         async function fetchAndSetJobs() {
-            var jobs = await fetchJobs('6640b7ea0f28db8bb8dc6bb3');
+            var jobs = await fetchJobs(userId);
             SetJobs(jobs);
             console.log(jobs);
         }

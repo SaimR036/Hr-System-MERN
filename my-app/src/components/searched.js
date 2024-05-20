@@ -3,7 +3,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import  { useRef } from 'react';
 import {uploadPost} from '../controllers/UsersC'
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchSimilar } from '../controllers/UsersC';
 import Navi from '../components/nav'
 import add from '../assets/add.jpg'
@@ -13,13 +13,18 @@ import tick from '../assets/tick.png'
 import {remReq,sendreq,remFriend} from '../controllers/UsersC'
 function Search()
 {
+  const navigate = useNavigate();
   const location = useLocation();
   const { text} = location.state;
   const [value,setValue] = useState([])
+  function navig(uid)
+  {
+    console.log('lop',uid)
+    navigate('/userProfile',{ state: { id:uid,display:true } })
+  }
     useEffect(()=>{
         var value1 = fetchSimilar(text)
         value1.then(result=>{
-            console.log(result)
             var list = [];
             var scores=[]
         for(var val of result) {
@@ -30,7 +35,6 @@ function Search()
             list.push(newItem);
             scores.push(val['score'])
             }
-            console.log(list,scores)
         for(var i=0;i<list.length-1;i++)
             for(var j=0;j<list.length-1;j++)
         {
@@ -44,9 +48,8 @@ function Search()
                 scores[j+1] = temp1
             }
         }
-        console.log(list,scores)
         setValue(list)
-
+        console.log(list)
         })
 
     },[])
@@ -75,7 +78,8 @@ function Search()
         
             <div className='col-7 col-sm-7 col-md-5 container-fluid bg-light ml-auto rounded  container border' style={{ minHeight: '25vh' }}>
             {value.map((item, index) => (
-        <div class='row ' key={index} style={{ color:'gray',border:'2px solid  black',borderRadius:'20px',marginBottom:'20px'}}>
+                  
+        <button class='row ' onClick={()=>{navig(item._id)}} key={index} style={{ color:'gray',border:'2px solid  black',borderRadius:'20px',marginBottom:'20px'}}>
             <img src={item.Photo} style={{marginLeft:'2px',marginBottom:'10px'}} className="mt-2  col-md-2 col-sm-4 rounded-circle col-4 col-lg-2 align-items-center" alt="Rounded" />
             
             <div className='col-md-9 truncate offset-md-0 col-9 col-sm-9 mt-1'>
@@ -88,7 +92,7 @@ function Search()
                 </div>
                 <div className='truncate col-md-7 offset-md-0 col-sm-6 '>{item.Headline}</div>
             </div>
-        </div>
+        </button>
     ))}
             </div>
         
