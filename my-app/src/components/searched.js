@@ -11,6 +11,8 @@ import fri from '../assets/fri.png'
 import pend from '../assets/pend.webp'
 import tick from '../assets/tick.png'
 import {remReq,sendreq,remFriend} from '../controllers/UsersC'
+import { jwtDecode } from 'jwt-decode';
+
 function Search()
 {
   const navigate = useNavigate();
@@ -53,9 +55,15 @@ function Search()
         })
 
     },[])
+    function updateFlag(id, newFlag) {
+        setValue(prevValue => prevValue.map(item => item._id === id ? {...item, flag: newFlag} : item));
+      }
+      
     function req(flag,id)
     {
-        var Sid ='6640b7ea0f28db8bb8dc6bb3'
+        const token = localStorage.getItem('token');
+            const decodedToken = jwtDecode(token);
+            const Sid = decodedToken.userId;
         if(flag==0)
             {
 
@@ -63,13 +71,16 @@ function Search()
             else if(flag==1)
                 {
                     remReq(Sid,id)
+                    updateFlag(id,-1);
                 }
                 else if(flag==2)
                     {
                         remFriend(Sid,id)
+                        updateFlag(id, -1);
                     }
                     else{
                         sendreq(Sid,id)
+                        updateFlag(id, 1);
                     }
     }
     return(
@@ -79,20 +90,21 @@ function Search()
             <div className='col-7 col-sm-7 col-md-5 container-fluid bg-light ml-auto rounded  container border' style={{ minHeight: '25vh' }}>
             {value.map((item, index) => (
                   
-        <button class='row ' onClick={()=>{navig(item._id)}} key={index} style={{ color:'gray',border:'2px solid  black',borderRadius:'20px',marginBottom:'20px'}}>
+        <div class='row '  key={index} style={{ color:'gray',border:'2px solid  black',borderRadius:'20px',marginBottom:'20px'}}>
             <img src={item.Photo} style={{marginLeft:'2px',marginBottom:'10px'}} className="mt-2  col-md-2 col-sm-4 rounded-circle col-4 col-lg-2 align-items-center" alt="Rounded" />
             
             <div className='col-md-9 truncate offset-md-0 col-9 col-sm-9 mt-1'>
                 <div className='d-flex align-items-center'>
-                    <div className='truncate col-md-7 offset-md-0 col-sm-7 '>{item.Name}</div>
-                    {/* {item.flag==0?
-                    <button onClick={() => req(item.flag)} className='col-2 offset-3 d-flex align-items-center justify-content-center offset-md-3 rounded'> 
+                    <a className=' truncate col-md-7 offset-md-0 col-sm-7 '>{item.Name}</a>
+                    {item.flag==0?
+                    <p className='col-2 d-flex offset-3 align-items-center justify-content-center offset-md-2 rounded'>Invited</p>:
+                    <button onClick={() => req(item.flag,item._id)} className='col-2 offset-3 d-flex align-items-center justify-content-center offset-md-3 rounded'> 
                         <img src ={item.flag==2?fri:item.flag==1?pend:add} style={{width:'20px'}}></img>
-                    </button>:<p className='col-2 d-flex offset-3 align-items-center justify-content-center offset-md-2 rounded'>Invited</p>} */}
+                    </button>}
                 </div>
                 <div className='truncate col-md-7 offset-md-0 col-sm-6 '>{item.Headline}</div>
             </div>
-        </button>
+        </div>
     ))}
             </div>
         

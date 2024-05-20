@@ -10,10 +10,15 @@ import Navi from '../components/nav'
 import { getPending,fetchWholeFriends } from '../controllers/UsersC';
 import cross from '../assets/cross.png'
 import tick from '../assets/tick.png'
+import { jwtDecode } from 'jwt-decode';
+
 import { makeFriend } from '../controllers/UsersC';
 import {Link,useNavigate,Router} from 'react-router-dom'
 export function MyNetwork()
-{   const id ='6640b7ea0f28db8bb8dc6bb3'
+{   
+    const token = localStorage.getItem('token');
+  const decodedToken = jwtDecode(token);
+  const id = decodedToken.userId; 
     const [pends,Setpends]  = useState([])
     const [dum,setDum] = useState(0)
     const [friends,SetFriends] = useState([])

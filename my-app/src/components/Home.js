@@ -84,7 +84,7 @@ export function Home() {
     console.log(us)}{
     us!==null && us.prem==0?
     <button onClick={navigate} className='d-flex align-items-center justify-content-center offset-9 col-2' style={{position:'absolute',backgroundColor:'blue', marginTop:'5%'}}  ><img className='col-12' style={{position:'absolute'}} src={premi}></img></button> 
-    :<></>}
+    :<>Premi</>}
     
     <div className='row '>
       
