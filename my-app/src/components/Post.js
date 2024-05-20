@@ -11,7 +11,7 @@ function Post({ post, userId,onDelete }) {
     const [showOptions, setShowOptions] = useState(false);
     const [likes, setLikes] = useState();
     const [showCommentSection, setShowCommentSection] = useState(false);
-
+    const [dislikes, setDisLikes] = useState();
 
     const [newComment, setNewComment] = useState('');
     const [commentList, setCommentList] = useState(post.comments);
@@ -34,6 +34,7 @@ function Post({ post, userId,onDelete }) {
             // Assuming the backend responds with the updated post data
             const updatedPost = response.data;
             setLikes(updatedPost.likes.length);
+            
             // Update the post state with the updated likes
             // setPost(updatedPost); // Assuming you have a state to hold the post data
         } catch (error) {
@@ -43,6 +44,20 @@ function Post({ post, userId,onDelete }) {
      
     const handleCommentsClick = () => {
         setShowCommentSection(!showCommentSection);
+    };
+
+    const handleDisLikeClick = async () => {
+        try {
+            // Send a request to update likes for the post
+            const response = await axios.post(`http://localhost:3001/dislike/${post._id}`, { userId: userId });
+            // Assuming the backend responds with the updated post data
+            const updatedPost = response.data;
+            setDisLikes(updatedPost.dislikes.length);
+            // Update the post state with the updated likes
+            // setPost(updatedPost); // Assuming you have a state to hold the post data
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
     };
     
 
@@ -95,7 +110,7 @@ function Post({ post, userId,onDelete }) {
                                 <p className='author-intro-v2'>
                                     <b style={{ fontSize: 'large', color: 'black' }}>{post.author.firstName} {post.author.lastName} </b>
                                     <br />
-                                    {post.author.headline}<br />
+                                    {post.author.Headline}<br />
 
                                     {formatDate(post.createdAt)}</p>
                             </div>
@@ -129,14 +144,21 @@ function Post({ post, userId,onDelete }) {
                             <div style={{ display: 'flex', width: '96%', margin: 'auto' }} >
 
 
-                                <div style={{ width: '50%' }}>
+                                <div style={{ width: '33%' }}>
                                     <button className='hover-button' onClick={handleLikeClick}>
                                         <span>
                                             <img className='icon' src={Like} alt="Likes" /> Like
                                         </span>
                                     </button>
                                 </div>
-                                <div style={{ width: '50%' }}>
+                                <div style={{ width: '33%' }}>
+                                    <button className='hover-button' onClick={handleDisLikeClick}>
+                                        <span>
+                                            <img className='icon' src={Like}  alt="Dislikes" /> Dislike
+                                        </span>
+                                    </button>
+                                </div>
+                                <div style={{ width: '33%' }}>
                                     <button className='hover-button' onClick={handleCommentsClick}>
                                         <span>
                                             <img className='icon' src={comments} alt="Comments" /> Comment

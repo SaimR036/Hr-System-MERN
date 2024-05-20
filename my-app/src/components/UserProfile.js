@@ -9,10 +9,8 @@ import Skills from './Skills';
 import Img from './Profimg';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-export default function UserProfile() {
-  const location = useLocation();
-  const { id, display} = location.state;
-  const userid = id
+export default function UserProfile({userid,display}) {
+  
   const [user, setUser] = useState(null); // Initialize as null to differentiate from an empty string
   const [loading, setLoading] = useState(true);
 

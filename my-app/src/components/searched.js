@@ -20,7 +20,7 @@ function Search()
   function navig(uid)
   {
     console.log('lop',uid)
-    navigate('/userProfile',{ state: { id:uid,display:true } })
+    navigate(`/other/${uid}`, { state: { id:uid,display:false } })
   }
     useEffect(()=>{
         var value1 = fetchSimilar(text)

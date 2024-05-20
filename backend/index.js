@@ -39,7 +39,7 @@ const iqraFModel = require('./models/iqraFriendsM.js');
 
 
 
-mongoose.connect('mongodb://localhost:27017/project', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://nageen12:nageen12345@cluster0.bapcvgb.mongodb.net/WebProject', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("MongoDB connected successfully");
    
@@ -870,11 +870,39 @@ console.log("in roites");
 
 
 
+app.put('/user/:id', async (req, res) => {
+  const userId = req.params.id;
+  const { firstName, lastName, Headline, location } = req.body; // Assuming these are the fields to be updated
+
+  try {
+    // Find the user by ID and update the fields
+    const updatedUser = await Users.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, Headline, location },
+      { new: true } // To return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
 app.get('/user/:id', async (req, res) => {
   const userId = req.params.id;
   console.log("Fetching user with ID:", userId);
   try {
-      const userData = await User.findById(userId).exec();
+      const userData = await Users.findById(userId).exec();
       if (!userData) {
           return res.status(404).json({ error: 'User not found' });
       }
@@ -890,7 +918,7 @@ app.get('/singleuser/:userid', async (req, res) => {
   const userId = req.params.userid; // Get the user ID from the request parameters
   try {
     console.log("in single user");
-      const userData = await User.findById(userId).exec(); // Find the user by ID
+      const userData = await Users.findById(userId).exec(); // Find the user by ID
       if (!userData) {
           return res.status(404).json({ error: 'User not found' });
       }
@@ -906,7 +934,7 @@ app.get('/activity/:userId', async (req, res) => {
     try {
       const userId = req.params.userId;
       // Fetch posts associated with the specified user ID
-      const posts = await Posts.find({ author: userId }).populate('author', 'firstName lastName headline profilePicture connections').populate('comments.author', 'firstName lastName headline');; // Populate the author field with user's first and last name
+      const posts = await Posts.find({ author: userId }).populate('author', 'firstName lastName Headline Photo connections').populate('comments.author', 'firstName lastName headline');; // Populate the author field with user's first and last name
       console.log(posts)
       res.json(posts);
     } catch (error) {
@@ -921,7 +949,7 @@ app.get('/activity/:userId', async (req, res) => {
 
     const userId = req.params.userId;
     try {
-      const user = await User.findById(userId);
+      const user = await Users.findById(userId);
       if (!user) {
           return res.status(404).json({ error: 'User not found' });
       }
@@ -941,7 +969,7 @@ app.get('/activity/:userId', async (req, res) => {
 
     const userId = req.params.userId;
     try {
-      const user = await User.findById(userId);
+      const user = await Users.findById(userId);
       if (!user) {
           return res.status(404).json({ error: 'User not found' });
       }
@@ -963,7 +991,7 @@ app.get('/activity/:userId', async (req, res) => {
         const { userid, educationId } = req.params;
 
         // Find the user by userid
-        const user = await User.findById(userid);
+        const user = await Users.findById(userid);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -993,25 +1021,27 @@ app.get('/activity/:userId', async (req, res) => {
 
 
 
+
+///user creates a post
   app.post('/createpost',async (req, res) => {
     try {
         // Extract post data from the request body
-        const { content,file,author, likes, comments, createdAt } = req.body;
+        const { content,file,author, likes, dislikes ,comments, createdAt } = req.body;
         console.log("in create post");
 
         // Create a new post instance
         const newPost = new Posts({
             content,
             image:file,
-            authorType:"users",
             author,
             likes,
+            dislikes,
             comments,
             createdAt
             // Add other fields as needed
         });
 
-        // Save the new post to the database
+
         await newPost.save();
 
         // Respond with a success message
@@ -1023,13 +1053,40 @@ app.get('/activity/:userId', async (req, res) => {
     }
 });
 
+app.post('/createpostM',async (req, res) => {
+  try {
+      // Extract post data from the request body
+      const { Description, Image, Uid, likes, dislikes, comments } = req.body;
+      console.log("in PostM")
+
+      // Create a new post instance
+      const newPost = new PostModel({
+        Description,
+        Image,
+        Uid,
+        likes,
+        dislikes,
+        comments
+      });
+  
+      // Save the new post to the database
+      await newPost.save();
+
+      // Respond with a success message
+      res.status(201).json({ message: 'Post created successfully', postId: newPost._id });
+  } catch (error) {
+      console.error('Error creating post:', error);
+      // If an error occurs, respond with an error message
+      res.status(500).json({ message: 'Failed to create post' });
+  }
+});
 
 app.delete('/experience/:userid/:experienceId', async (req, res) => {
     try {
         const { userid, experienceId } = req.params;
 
         // Find the user by userid
-        const user = await User.findById(userid);
+        const user = await Users.findById(userid);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -1061,7 +1118,7 @@ app.post('/experience/:userid', async (req, res) => {
     console.log("here in addingn new exp")
     try {
         // Find the user by userid
-        const user = await User.findById(userid);
+        const user = await Users.findById(userid);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -1103,7 +1160,7 @@ app.post('/education/:userid', async (req, res) => {
   console.log("here in addingn new exp",startDate,endDate)
   try {
       // Find the user by userid
-      const user = await User.findById(userid);
+      const user = await Users.findById(userid);
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
@@ -1141,7 +1198,7 @@ app.post('/skills/:userId', async(req,res)=>{
     try {
         const userId = req.params.userId;
         const { skill } = req.body;
-        const user = await User.findById(userId);
+        const user = await Users.findById(userId);
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -1164,7 +1221,7 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
     try {
         const userId = req.params.userId;
         const skillId = req.params.skillId;
-        const user = await User.findById(userId);
+        const user = await Users.findById(userId);
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
@@ -1198,6 +1255,38 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
   
       // Add the user's ObjectId to the likes array
       post.likes.push(userId);
+  
+      // Save the updated post document
+      await post.save();
+  
+      res.status(200).json({ message: 'Post liked successfully' , post});
+    } catch (error) {
+      console.error('Error liking post:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+
+  });
+  app.post('/dislike/:postId', async (req, res) => {
+    const { postId } = req.params;
+    const { userId } = req.body; // Assuming you're sending the userId in the request body
+  
+    try {
+      // Retrieve the post document
+      const post = await Posts.findById(postId);
+  
+      // Check if the post exists
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      // Check if the user already liked the post
+      if (post.dislikes.includes(userId)) {
+        return res.status(400).json({ error: 'User already liked the post' });
+      }
+  
+      // Add the user's ObjectId to the likes array
+      post.dislikes.push(userId);
   
       // Save the updated post document
       await post.save();
@@ -1253,6 +1342,9 @@ app.delete('/delpost/:postId', async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
+     
+
+
 
     await Posts.deleteOne({ _id: postId });
     res.status(200).json({ message: 'Post deleted successfully' });

@@ -1,10 +1,16 @@
 import React from 'react'
 import UserProfile from './UserProfile'
+import { jwtDecode } from 'jwt-decode';
+
 function MyProfile() {
-  //pass userid in below userid , make sure ke its saved in db first
+  const token = localStorage.getItem('token');
+            const decodedToken = jwtDecode(token);
+            const userId = decodedToken.userId;
+            console.log(userId);
+ 
   return (
     
-    <div><UserProfile userid={'66491b790254e7b9338712fd'} display={true}/></div>
+    <div><UserProfile userid={userId} display={true}/></div>
   )
 }
 

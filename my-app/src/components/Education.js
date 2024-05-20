@@ -60,18 +60,25 @@ function Education({ user,displayButton}) {
         // Add logic to handle creating a post
     };
     const formatDateRange = (startDate1, endDate1) => {
-
-        // Check if startDate1 and endDate1 are Date objects
-        if (startDate1 && endDate1) {
-
-            return `${startDate1} - ${endDate1}`;
-        } else if (startDate1 && !endDate1) {
-            return `${startDate1} - Present`;
+        // Parse startDate1 and endDate1 as Date objects if they are not already
+        const startDate = startDate1 instanceof Date ? startDate1 : new Date(startDate1);
+        const endDate = endDate1 instanceof Date ? endDate1 : new Date(endDate1);
+    
+        // Check if startDate and endDate are valid Date objects
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+            const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            const endFormatted = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            return `${startFormatted} - ${endFormatted}`;
+        } else if (!isNaN(startDate.getTime()) && isNaN(endDate.getTime())) {
+            const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            return `${startFormatted} - Present`;
         } else {
-            // If neither start date nor end date is defined
+            // If neither start date nor end date is valid, return an empty string
             return '';
         }
     };
+    
+    
     const handleDelete = async (educationId) => {
         try {
             // Send a DELETE request to the server to delete the experience
@@ -96,13 +103,9 @@ function Education({ user,displayButton}) {
             
             
 
-            const startDateString = `${stm} ${ste}`;
-            setStartDate(startDateString);
-
-            console.log("start Date = ",startDate)
-   
-    
-            const endDateString = `${edm} ${ede}`;
+            const startDateString = `${ste}-${stm}`;
+            // Format end date string as YYYY-MM-DD
+            const endDateString = `${ede}-${edm}`;
 
 
             const requestBody = {

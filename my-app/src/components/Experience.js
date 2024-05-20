@@ -11,7 +11,7 @@ function Experience({ user,displayButton   }) {
     const [showModal, setShowModal] = useState(false);
     const [title, setTitle] = useState("");
     const [company, setCompany] = useState("");
-    const [startDate, setStartDate] = useState("");
+    const [startDate, setStartDate] = useState(Date);
     const [description, setDescription] = useState("");
 
 
@@ -61,18 +61,30 @@ function Experience({ user,displayButton   }) {
         // Add logic to handle creating a post
     };
     const formatDateRange = (startDate1, endDate1) => {
-        console.log(startDate1);
-
-        // Check if startDate1 and endDate1 are Date objects
-        if (startDate1 && endDate1) {
-
-            return `${startDate1} - ${endDate1}`;
-        } else if (startDate1 && !endDate1) {
-            return `${startDate1} - Present`;
+        // Parse startDate1 and endDate1 as Date objects if they are not already
+        const startDate = startDate1 instanceof Date ? startDate1 : new Date(startDate1);
+        const endDate = endDate1 instanceof Date ? endDate1 : new Date(endDate1);
+    
+        // Check if startDate and endDate are valid Date objects
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+            const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            const endFormatted = endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            return `${startFormatted} - ${endFormatted}`;
+        } else if (!isNaN(startDate.getTime()) && isNaN(endDate.getTime())) {
+            const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            return `${startFormatted} - Present`;
         } else {
-            // If neither start date nor end date is defined
+            // If neither start date nor end date is valid, return an empty string
             return '';
         }
+    };
+    
+
+
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
     };
     const handleDelete = async (experienceId) => {
         try {
@@ -102,13 +114,9 @@ function Experience({ user,displayButton   }) {
             console.log(locationType);
             console.log(description);
 
-            const startDateString = `${stm} ${ste}`;
-            setStartDate(startDateString);
-
-            console.log("start Date = ",startDate)
-   
-    
-            const endDateString = `${edm} ${ede}`;
+            const startDateString = `${ste}-${stm}`;
+            // Format end date string as YYYY-MM-DD
+            const endDateString = `${ede}-${edm}`;
 
 
             const requestBody = {
@@ -269,7 +277,7 @@ function Experience({ user,displayButton   }) {
                                                 <div className='leftie'>
                                                     <p className='JobTitle'><b>{post.title}</b> </p>
                                                     <p className='Company'>{post.company}</p>
-                                                    <p className='grey'>{formatDateRange(post.startDate, post.endDate)}</p>
+                                                    <p className='grey'>{formatDateRange(post.startDat,post.endDate)}</p>
                                                     <p className='grey'>{post.location}.{post.locationType}</p>
                                                 </div>
                                                 <div className='right'><br />{displayButton && (

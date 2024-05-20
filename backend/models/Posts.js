@@ -4,12 +4,13 @@ const mongoose = require('mongoose');
 const postSchema = new mongoose.Schema({
   content: { type: String, required: true },
   image: { type: String }, // URL or path to the image file
-  author: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true },
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'iqrausers', required: true },
   createdAt: { type: Date, default: Date.now },
-  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'users' }],
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'iqrausers' }],
+  dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'iqrausers' }],
   comments: [{
     content: { type: String, required: true },
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'iqrausers', required: true },
     createdAt: { type: Date, default: Date.now }
   }]
 });

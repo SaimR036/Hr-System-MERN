@@ -11,7 +11,7 @@ import { useEffect, useState ,useRef} from 'react';
 function Feed(props)
 {
     const [users, setUsers] = useState([]);
-  let url;
+    let url;
 
       useEffect(() => {
           //fetchImageData(imageId)
