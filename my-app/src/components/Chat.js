@@ -7,6 +7,7 @@ const Chat = () => {
     const [newMessage, setNewMessage] = useState('');
     const [chatList, setChatList] = useState([]);
     const [selectedFriend, setSelectedFriend] = useState(null);
+    const [sender,setSender] = useState(null);
 
     useEffect(() => {
         fetchFriends();
@@ -31,7 +32,7 @@ const Chat = () => {
                 const userResponse = await axios.get(`http://localhost:3001/user/${friendId}`);
                 const user = userResponse.data;
                 setSelectedFriend(user);
-                console.log(user);
+                console.log('selectedfriend', user);
               
                 return { id: user._id, name: `${user.firstName} ${user.lastName}` };
             }));
@@ -51,24 +52,34 @@ const Chat = () => {
             const token = localStorage.getItem('token');
              const decodedToken = jwtDecode(token);
              const userId = decodedToken.userId;
-            console.log('FASDASD',selectedFriend)
+            console.log('selected',selectedFriend)
             const response = await axios.get(`http://localhost:3001/messages/${selectedFriend}`);
             const messages = response.data;
-            console.log(messages)
+           // console.log(messages)
+
+            const messagesWithUsernames = await Promise.all(messages.map(async (message) => {
+                console.log('mesg sender');
+                const senderResponse = await axios.get(`http://localhost:3001/users/${message.sender_id}`);
+                const sender = senderResponse.data;
+                console.log('sender');
+                console.log('sender',sender);
+                return { ...message, sender_username: sender.username }; 
+            }));
+            setMessages(messagesWithUsernames);
             
         } catch (error) {
             console.error('Fetch Messages Error:', error);
         }
-        
-        const messagesWithUsernames = await Promise.all(messages.map(async (message) => {
-            const senderResponse = await axios.get(`http://localhost:3001/users/${message.sender_id}`);
-            const sender = senderResponse.data;
-            return { ...message, sender_username: sender.username };
-        }));
-    
-    
-
-        setMessages(messagesWithUsernames);
+        console.log('here');
+        // const messagesWithUsernames = await Promise.all(messages.map(async (message) => {
+        //     console.log('mesg sender');
+        //     const senderResponse = await axios.get(`http://localhost:3001/users/${message.sender_id}`);
+        //     const sender = senderResponse.data;
+        //     console.log('sender');
+        //     console.log('sender',sender);
+        //     return { ...message, sender_username: 'Unknown' }; 
+        // }));
+        // setMessages(messagesWithUsernames);
     };
 
     const handleFriendClick = (friendId) => {
@@ -88,11 +99,12 @@ const Chat = () => {
              const senderId = decodedToken.userId;
 
             await axios.post('http://localhost:3001/send-message', {
+                
                 sender_id: senderId,
                 receiver_id: selectedFriend,
                 message: newMessage
             });
-
+            //console.log('senderr',sender.username);
             await fetchMessages();
 
             setNewMessage('');
@@ -102,6 +114,10 @@ const Chat = () => {
     };
 
     return (
+
+        <>
+   
+
         <div className="mt-20 container-fluid d-flex flex-column min-vh-80">
             <div className="d-flex" style={{ height: 'calc(100vh - 20px)' }}>
                 <div className="d-flex flex-column" style={{ width: '25%', height: '100vh', backgroundColor: '#f0f0f0' }}>
@@ -148,6 +164,7 @@ const Chat = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

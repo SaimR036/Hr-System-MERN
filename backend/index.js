@@ -39,15 +39,10 @@ const Resume = require('./models/resumes.js');
 
 
 
-mongoose.connect('mongodb+srv://nageen12:nageen12345@cluster0.bapcvgb.mongodb.net/WebProject', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb://localhost:27017/proconnectDB', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("MongoDB connected successfully");
-   
-
-        
-        
-      
-        
+          
         
     })
     .catch((err) => {
@@ -278,22 +273,21 @@ app.post("/send-message", async (req, res) => {
 
 app.get("/messages/:userId", async (req, res) => {
   try {
-      const { userId } = req.params;
-
+    const userId = req.params.userId;
+       console.log('userid',userId);
       const messages = await Chat.find({
           $or: [
               { sender_id: userId },
               { receiver_id: userId }
           ]
       });
-
+//console.log('messages',messages);
       res.status(200).json(messages);
   } catch (error) {
       console.error('Retrieve Messages Error:', error);
       res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 
 app.get('/users/:userId', async (req, res) => {
