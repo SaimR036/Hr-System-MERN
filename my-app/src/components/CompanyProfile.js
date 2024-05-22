@@ -5,29 +5,29 @@ import About from './About';
 import CompanyInfo from './CompanyInfo';
 import Img from './Profimg';
 import Cposts from './CPPosts';
-import JobPosting from './JobPost'
-function CompanyProfile() {
-    const userid ='664861e6bba992029d30e41e'
-    const displayButton= true
+import JobPosting from './JobPost';
+
+function CompanyProfile({ userid, display }) {
     const [company, setCompany] = useState({});
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Initially set loading to true
     const [companyId, setCompanyID] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                console.log("Fetching company data for ID:", userid);
                 const response = await axios.get(`http://localhost:3001/company/${userid}`);
                 setCompany(response.data);
                 setCompanyID(response.data._id);
-                setLoading(false);
+                setLoading(false); // Set loading to false when data is fetched
             } catch (error) {
                 console.error('Error fetching company data:', error);
-                setLoading(false);
+                setLoading(false); // Set loading to false in case of error
             }
         };
 
         fetchData();
-    }, [userid]);
+    }, [userid]); // Include userid in the dependency array
 
     return (
         <div className="container-custom col">
@@ -38,15 +38,14 @@ function CompanyProfile() {
                             <CompanyInfo
                                 company={company}
                                 loading={loading}
-                                displayButton={displayButton}
+                                displayButton={display}
                                 style={{ backgroundColor: 'rgb(243, 243, 243)' }}
                             />
                             <br />
                             <About company={company} />
-                            {console.log(company._id)}<br />
-                            <Cposts userid={companyId} loading={loading} displayButton={displayButton} />
-
-                            <JobPosting company={company} displayButton={displayButton}  />
+                            <br />
+                            <Cposts userid={companyId} loading={loading} displayButton={display} />
+                            <JobPosting company={company} displayButton={display} />
                         </>
                     ) : (
                         <p>Loading...</p> // Placeholder for loading indicator

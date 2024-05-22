@@ -5,7 +5,7 @@ import options from '../assets/more.png'
 import heart from '../assets/heart (1).png'
 import comments from '../assets/comment.png'
 import Like from '../assets//like.png'
-
+import DLike from '../assets/dislike.png'
 
 function Post({ post, userId,onDelete }) {
     const [showOptions, setShowOptions] = useState(false);
@@ -154,7 +154,7 @@ function Post({ post, userId,onDelete }) {
                                 <div style={{ width: '33%' }}>
                                     <button className='hover-button' onClick={handleDisLikeClick}>
                                         <span>
-                                            <img className='icon' src={Like}  alt="Dislikes" /> Dislike
+                                            <img className='icon' src={DLike}  alt="Dislikes" /> Dislike
                                         </span>
                                     </button>
                                 </div>

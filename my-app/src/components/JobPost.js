@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-
 import '../CSS/UserProfile.css';
 import axios from 'axios';
 import { Modal } from 'react-bootstrap';
@@ -138,7 +137,7 @@ function JobPost({ company, displayButton }) {
                             </div>
                             {!showAll && !loading && posts.length > 0 && (
                                 <div className="text-center">
-                                    <button className="showall" onClick={() => navigate(`/Companyjobs/${company._id}`)}>Show All Posts -&gt;</button>
+                                    <button className="showall" onClick={() => navigate(`/Companyjobs/${company._id}`, { state: { displayBtn:displayButton } })}>Show All Posts -&gt;</button>
                                 </div>
                             )}
                         </div>

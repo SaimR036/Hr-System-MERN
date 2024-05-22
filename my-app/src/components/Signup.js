@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 
 export const Signup = () => {
@@ -16,7 +17,7 @@ export const Signup = () => {
     industry: '',
     headline: '',
     companyName: '',
-    Headline:'',
+    Headline: '',
     companyLocations: [
       { address: '', city: '', state: '', zip: '', country: '' }
     ],
@@ -27,22 +28,21 @@ export const Signup = () => {
     type: '',
   });
   const [error, setError] = useState(null);
-  const [image,SetImage] = useState(null);
-    function check(e)
-    {
-      var reader = new FileReader();
-      reader.readAsDataURL(e.target.files[0]);
-      reader.onload = () => {
-        console.log('lololo')
+  const [image, SetImage] = useState(null);
+  function check(e) {
+    var reader = new FileReader();
+    reader.readAsDataURL(e.target.files[0]);
+    reader.onload = () => {
+      console.log('lololo')
 
-        console.log(reader.result)
-        SetImage(reader.result)
-      }
-      reader.onerror = error =>{
-        console.log("Error: ",error);
-      }
-      
+      console.log(reader.result)
+      SetImage(reader.result)
     }
+    reader.onerror = error => {
+      console.log("Error: ", error);
+    }
+
+  }
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -66,7 +66,7 @@ export const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       let result;
       if (accountType === 'individual') {
@@ -83,7 +83,7 @@ export const Signup = () => {
           Headline: formData.Profession,
           Photo: image,
         };
-        
+
         try {
           const response = await fetch('http://localhost:3001/signup/person', {
             method: 'POST',
@@ -92,7 +92,7 @@ export const Signup = () => {
             },
             body: JSON.stringify(postData),
           });
-        
+
           if (response.ok) {
             // Handle successful response
             const data = await response.json();
@@ -105,7 +105,7 @@ export const Signup = () => {
           // Handle network errors or exceptions
           console.error('Fetch error:', error);
         }
-        
+
       } else if (accountType === 'company') {
         if (!formData.companyName || !formData.companyLocations || !formData.companyIndustry || !formData.email || !formData.password) {
           throw new Error("All compulsory fields must be filled.");
@@ -122,12 +122,25 @@ export const Signup = () => {
           type: formData.type,
         });
       }
-  
+
       if (result.status === 201) {
+        const token = localStorage.getItem('token');
+        const decodedToken = jwtDecode(token);
+        const userType = decodedToken.userType;
+
+
         const userData = result.data;
         localStorage.setItem("userzs", JSON.stringify(userData));
         console.log(formData);
-        navigate('/chat', { replace: true });
+
+        if (userType === 'user') {
+          navigate('/myprofile', { replace: true }); // Navigate to user profile
+        } else {
+          navigate('/mycompanyprofile', { replace: true }); // Navigate to company profile
+        }
+
+
+
         alert('Signup successful');
       } else {
         const errorData = result.data;
@@ -148,8 +161,8 @@ export const Signup = () => {
       }
     }
   };
-  
-  
+
+
   const nextStep = () => {
     setStep(step + 1);
   };
@@ -168,28 +181,28 @@ export const Signup = () => {
             <div>
               <h3>Choose Account Type</h3>
               <div className="form-check">
-                <input 
-                  className="form-check-input" 
-                  type="radio" 
-                  name="accountType" 
-                  id="individual" 
-                  value="individual" 
-                  checked={accountType === 'individual'} 
-                  onChange={(e) => setAccountType(e.target.value)} 
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="accountType"
+                  id="individual"
+                  value="individual"
+                  checked={accountType === 'individual'}
+                  onChange={(e) => setAccountType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="individual">
                   Individual
                 </label>
               </div>
               <div className="form-check">
-                <input 
-                  className="form-check-input" 
-                  type="radio" 
-                  name="accountType" 
-                  id="company" 
-                  value="company" 
-                  checked={accountType === 'company'} 
-                  onChange={(e) => setAccountType(e.target.value)} 
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="accountType"
+                  id="company"
+                  value="company"
+                  checked={accountType === 'company'}
+                  onChange={(e) => setAccountType(e.target.value)}
                 />
                 <label className="form-check-label" htmlFor="company">
                   Company
@@ -279,10 +292,10 @@ export const Signup = () => {
                   onChange={handleChange}
                 />
               </div>
-              <div> 
-              
-              <input accept="image/*" type="file" onChange={check}></input>
-              
+              <div>
+
+                <input accept="image/*" type="file" onChange={check}></input>
+
               </div>
               <div className='d-grid'>
                 {step !== 1 && <button type='button' className='btn btn-secondary mr-2' onClick={prevStep}>Previous</button>}

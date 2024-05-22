@@ -27,13 +27,13 @@ function About({ company }) {
             <>
               <h6>Company Size</h6>
               <p>
-                {company.companySize} Size<br />{' '}
-                {company.employeeInsights.totalEmployees} Employees
+                {company.companySize
+} Employees<br />{' '}
               </p>
               <h6>Head Quarters</h6>
               <p>
-                {company.headquarters.address},{company.headquarters.city},
-                {company.headquarters.country}
+                {company.locations[0].address},{company.locations[0].city},
+                {company.locations[0].country}
               </p>
               <h6>Founded</h6>
               <p>{company.founded}</p>

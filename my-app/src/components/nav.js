@@ -8,6 +8,7 @@ import net from '../assets/nett.png'
 import jobs from '../assets/jobs.png'
 import {Link,useNavigate,Router} from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode';
+import Unknown from '../assets/unknown.jpg'
 function Navi()
 {
   const token = localStorage.getItem('token');
@@ -15,6 +16,7 @@ function Navi()
             const id = decodedToken.userId;
   const inputRef = useRef();
   const [user,setUser] = useState(null)
+  const [showDropdown, setShowDropdown] = useState(false);
   useEffect(()=>{
     async function les()
     {
@@ -65,6 +67,19 @@ function Navi()
                 Setpost(true)
         }
     }
+    const handleLogout = () => {
+      localStorage.removeItem('token');
+      navigate('/');
+  };
+
+  const handleMyProfile = () => {
+    const userType = decodedToken.userType;
+    if (userType === 'user') {
+        navigate('/myprofile', { replace: true }); // Navigate to user profile
+    } else if (userType === 'company') {
+        navigate('/mycompanyprofile', { replace: true }); // Navigate to company profile
+    }
+};
     const handle = (event) => {
         event.preventDefault();
         console.log('lololo1')
@@ -131,7 +146,22 @@ function Navi()
     <p style={{ fontSize:'12px' }} className="m-0">Jobs</p>
   </div>
   </button>:<></>}
-       
+  <li className="nav-item dropdown">
+                                <button className='btn dropdown-toggle' onClick={() => setShowDropdown(!showDropdown)}>
+                                    <div className="d-flex flex-column align-items-center">
+                                        <span className="col-3 d-flex align-items-center justify-content-center" style={{ height: '25px', width: '25px' }}>
+                                            <img src={Unknown} style={{ height: '100%' }} alt="Me" />
+                                        </span>
+                                        <p style={{ fontSize: '12px' }} className="m-0">Me</p>
+                                    </div>
+                                </button>
+                                {showDropdown && (
+                                    <div className="dropdown-menu dropdown-menu-right show">
+                                        <button className="dropdown-item" onClick={handleMyProfile}>My Profile</button>
+                                        <button className="dropdown-item" onClick={handleLogout}>Logout</button>
+                                    </div>
+                                )}
+                            </li>
       </ul>
     </div>
   </div>

@@ -15,7 +15,7 @@ const Users = require('./models/iqrausers.js');
 const Company = require('./models/company.js');
 const Chat = require('./models/chat.js');
 const Posts = require('./models/Posts');
-
+const CPosts = require('./models/CompanyPosts.js')
 const crypto = require('crypto');
 const sendEmail = require('./sendEmail');
 
@@ -140,7 +140,7 @@ mongoose.connect('mongodb+srv://nageen12:nageen12345@cluster0.bapcvgb.mongodb.ne
 app.post("/signup/company", async (req, res) => {
     try {
         console.log(req.body);
-        const { email, password, name, locations, industry,type } = req.body;
+        const { email, password, name, locations, industry,type,size, websiteURL, founded } = req.body;
         
         // Check if the company already exists
         const existingCompany = await Company.findOne({ email });
@@ -159,11 +159,32 @@ app.post("/signup/company", async (req, res) => {
             locations,
             industry,
             type,
+            size, 
+            websiteURL, 
+            founded 
             
         });
 
+
+        
+
+
+
         // Save the company document
         let result = await newCompany.save();
+
+
+        const token = jwt.sign({ userId: result._id, userType:"company" }, '2b35cff4dc0cd006645882f6037eccaa0828d278779e1e53fc7c865c6afe598e', { expiresIn: '1h' });
+
+      // Set the cookie in the response
+      res.cookie(String(result._id), token, {
+          path: "/",
+          expires: new Date(Date.now() + 1000 * 60 * 60), // Token expires in 1 hour
+          httpOnly: true,
+          sameSite: "lax",
+      });
+
+
         res.status(201).json(result);
     } catch (error) {
         console.error('Company Signup Error:', error);
@@ -190,7 +211,7 @@ app.post("/login", async (req, res) => {
       user = await Users.findOne({ email });
 
       // If user doesn't exist in Users collection, check in Company collection
-      if (!user) {
+       if (!user) {
           const company = await Company.findOne({ email });
 
           // If user doesn't exist in Company collection, return error
@@ -199,8 +220,10 @@ app.post("/login", async (req, res) => {
           }
 
           // If user exists in Company collection, use company's ID and password for authentication
-          user = { _id: company._id, password: company.password };
-      }
+          user = { _id: company._id, userType: 'company', password: company.password };
+        } else {
+          user.userType = 'user'; // Assuming user type for Users collection
+        }
 
       // Compare the password with the hashed password
       const isMatch = await bcrypt.compare(password, user.password);
@@ -209,7 +232,7 @@ app.post("/login", async (req, res) => {
       }
 
       // Generate token
-      const token = jwt.sign({ userId: user._id }, '2b35cff4dc0cd006645882f6037eccaa0828d278779e1e53fc7c865c6afe598e', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user._id , userType: user.userType }, '2b35cff4dc0cd006645882f6037eccaa0828d278779e1e53fc7c865c6afe598e', { expiresIn: '1h' });
 
       // Set the cookie in the response
       res.cookie(String(user._id), token, {
@@ -948,13 +971,13 @@ console.log("in roites");
 
 app.put('/user/:id', async (req, res) => {
   const userId = req.params.id;
-  const { firstName, lastName, Headline, location } = req.body; // Assuming these are the fields to be updated
+  const { firstName, lastName, Headline, location,Photo } = req.body; // Assuming these are the fields to be updated
 
   try {
     // Find the user by ID and update the fields
     const updatedUser = await Users.findByIdAndUpdate(
       userId,
-      { firstName, lastName, Headline, location },
+      { firstName, lastName, Headline, location,Photo },
       { new: true } // To return the updated document
     );
 
@@ -1358,7 +1381,7 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
   
       // Check if the user already liked the post
       if (post.dislikes.includes(userId)) {
-        return res.status(400).json({ error: 'User already liked the post' });
+        return res.status(400).json({ error: 'User already disliked the post' });
       }
   
       // Add the user's ObjectId to the likes array
@@ -1448,12 +1471,15 @@ app.delete('/delpost/:postId', async (req, res) => {
 ////Company APIS
 
 
-//get company initial. this is not by id
+//get company by id
+
 app.get('/company/:companyId', async (req, res) => {
   const { companyId } = req.params; // Extract company ID from the route parameters
+  console.log("id",companyId);
   try {
     // Fetch company data by ID
     const companyData = await Company.findById(companyId).exec();
+    console.log(companyData);
     
     // Check if the company data is found
     if (!companyData) {
@@ -1468,6 +1494,31 @@ app.get('/company/:companyId', async (req, res) => {
   }
 });
 
+
+app.put('/companyinfoupdate/:companyId', async (req, res) => {
+  const { companyId } = req.params; // Extract company ID from the route parameters
+  const updatedCompanyData = req.body; // Updated company data from the request body
+
+  try {
+    // Find the company by ID and update its data
+    const updatedCompany = await Company.findByIdAndUpdate(companyId, updatedCompanyData, { new: true });
+
+    // Check if the company exists and is successfully updated
+    if (!updatedCompany) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+
+    // Send the updated company data as JSON
+    res.json(updatedCompany);
+  } catch (error) {
+    console.error('Error updating company data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
 //fetches company posts
 app.get('/Cp/:userId', async (req, res) => {
   console.log("here in /Cp");
@@ -1476,25 +1527,7 @@ app.get('/Cp/:userId', async (req, res) => {
 
     // Fetch posts by the specific user
     const userPosts = await CPosts.find({ author: userId })
-      .populate('author', 'name tagline')
-      .populate({
-        path: 'comments',
-        populate: {
-          path: 'author',
-          model: 'users',
-          select: 'firstName lastName headline', // Select the fields for users
-          match: { authorType: 'user' } // Filter comments where authorType is 'user'
-        }
-      })
-      .populate({
-        path: 'comments',
-        populate: {
-          path: 'author',
-          model: 'companies',
-          select: 'name tagline', // Select the fields for companies
-          match: { authorType: 'company' } // Filter comments where authorType is 'company'
-        }
-      });
+      .populate('author', 'name tagline');
 
     console.log("userPosts:", userPosts);
     res.json(userPosts);
@@ -1541,12 +1574,15 @@ app.post('/createcompanypost',async (req, res) => {
 //finds a single company based on ID
 app.get('/singlecomp/:userid', async (req, res) => {
   const userId = req.params.userid; // Get the user ID from the request parameters
+
+  console.log("in single id com :" , userId)
   try {
     console.log("in single user");
       const userData = await Company.findById(userId).exec(); // Find the user by ID
       if (!userData) {
           return res.status(404).json({ error: 'User not found' });
       }
+      console.log(userData)
       res.json(userData); // Send the user data as JSON response
   } catch (error) {
       console.error('Error fetching user:', error);
@@ -1573,6 +1609,39 @@ app.post('/Companylike/:postId', async (req, res) => {
     // Check if the user already liked the post
     if (post.likes.includes(userId)) {
       return res.status(400).json({ error: 'User already liked the post' });
+    }
+
+    // Add the user's ObjectId to the likes array
+    post.likes.push(userId);
+
+    // Save the updated post document
+    await post.save();
+
+    res.status(200).json({ message: 'Post liked successfully' , post});
+  } catch (error) {
+    console.error('Error liking post:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+
+});
+
+app.post('/CompanyDlike/:postId', async (req, res) => {
+  const { postId } = req.params;
+  const { userId } = req.body; // Assuming you're sending the userId in the request body
+
+  try {
+    // Retrieve the post document
+    const post = await CPosts.findById(postId);
+
+    // Check if the post exists
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Check if the user already liked the post
+    if (post.likes.includes(userId)) {
+      return res.status(400).json({ error: 'User already Disliked the post' });
     }
 
     // Add the user's ObjectId to the likes array

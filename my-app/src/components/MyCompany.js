@@ -1,8 +1,14 @@
 import React from 'react'
 import CompanyProfile from './CompanyProfile'
+import { jwtDecode } from 'jwt-decode';
 function MyCompany() {
+  const token = localStorage.getItem('token');
+  const decodedToken = jwtDecode(token);
+  const userId = decodedToken.userId;
+  console.log("mycompanyprofile   jereeeee:",userId);
+
   return (
-    <div><CompanyProfile userid={'66491f430254e7b9338712ff'} displayButton={true}/></div>
+    <div><CompanyProfile userid={userId} display={true}/></div>
   )
 }
 

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 import Img from './Profimg'
 import ProfileURL from './ProfileURL'
 import { useParams } from 'react-router-dom';
 import JobPostcomp  from './JobPostcomp';
 function ComJobPosts({ userId }) {
+  const location = useLocation();
+  const { displayBtn } = location.state;
+  console.log(displayBtn,"display button")
     const [posts, setPosts] = useState([]);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -39,7 +43,7 @@ function ComJobPosts({ userId }) {
       <div class="row">
       <div class="col-md-3">
         {user && (
-            <ProfileURL firstname={user.firstName} lastname={user.lastName} />
+            <ProfileURL firstname={user.firstName} lastname={user.lastName} displayButton={displayBtn} />
           )}
           <Img/>
           
@@ -54,7 +58,7 @@ function ComJobPosts({ userId }) {
               .filter(post => post.author !== null)
               .map(post => (
                 <li key={post._id}>
-                  <JobPostcomp post={post} userId={user._id} onDelete={handleDelete} />
+                  <JobPostcomp post={post} userId={user._id} onDelete={handleDelete} displayButton={displayBtn} />
                 </li>
               ))}
           </ul>

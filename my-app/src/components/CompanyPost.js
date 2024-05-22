@@ -6,16 +6,16 @@ import heart from '../assets/heart (1).png'
 import comments from '../assets/comment.png'
 import Like from '../assets/like.png'
 
-function CompanyPost({ post, userId,onDelete }) {
+import DLike from '../assets/dislike.png'
+
+function CompanyPost({ post, userId, onDelete }) {
     const [showOptions, setShowOptions] = useState(false);
     const [likes, setLikes] = useState();
     const [showCommentSection, setShowCommentSection] = useState(false);
-
+    const [dislikes, setDisLikes] = useState();
 
     const [newComment, setNewComment] = useState('');
     const [commentList, setCommentList] = useState(post.comments);
-
-
 
     useEffect(() => {
         setLikes(post.likes.length);
@@ -26,18 +26,32 @@ function CompanyPost({ post, userId,onDelete }) {
         return date.toLocaleDateString(); // Adjust the formatting as needed
     };
 
+    const handleDisLikeClick = async () => {
+        try {
+            // Send a request to update likes for the post
+            const response = await axios.post(`http://localhost:3001/CompanyDlike/${post._id}`, { userId: userId });
+            // Assuming the backend responds with the updated post data
+            const updatedPost = response.data;
+            setDisLikes(updatedPost.dislikes.length);
+            // Update the post state with the updated likes
+            // setPost(updatedPost); // Assuming you have a state to hold the post data
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
+
     const handleLikeClick = async () => {
         try {
             // Send a request to update likes for the post
             const response = await axios.post(`http://localhost:3001/Companylike/${post._id}`, { userId: userId });
-            
+
             // Assuming the backend responds with the updated post data
             const updatedPost = response.data;
-    
+
             // Check if updatedPost.likes is defined, otherwise treat it as 0 likes
             const likesCount = updatedPost.likes ? updatedPost.likes.length : 0;
             setLikes(likesCount);
-    
+
             // Optionally update the post state with the updated likes if you have a state for post
             // setPost(updatedPost); // Uncomment if you manage post state
         } catch (error) {
@@ -47,7 +61,7 @@ function CompanyPost({ post, userId,onDelete }) {
     const handleCommentsClick = () => {
         setShowCommentSection(!showCommentSection);
     };
-    
+
 
 
     const handleCommentChange = (e) => {
@@ -59,7 +73,7 @@ function CompanyPost({ post, userId,onDelete }) {
 
         try {
             const currentDate = new Date();
-            const response = await axios.post(`http://localhost:3001/Companycomment/${post._id}`, { userId, content: newComment ,createdDate: currentDate });
+            const response = await axios.post(`http://localhost:3001/Companycomment/${post._id}`, { userId, content: newComment, createdDate: currentDate });
             const updatedPost = response.data;
             setCommentList(updatedPost.comments);
             setNewComment('');
@@ -132,14 +146,21 @@ function CompanyPost({ post, userId,onDelete }) {
                             <div style={{ display: 'flex', width: '96%', margin: 'auto' }} >
 
 
-                                <div style={{ width: '50%' }}>
+                                <div style={{ width: '33%' }}>
                                     <button className='hover-button' onClick={handleLikeClick}>
                                         <span>
                                             <img className='icon' src={Like} alt="Likes" /> Like
                                         </span>
                                     </button>
                                 </div>
-                                <div style={{ width: '50%' }}>
+                                <div style={{ width: '33%' }}>
+                                    <button className='hover-button' onClick={handleDisLikeClick}>
+                                        <span>
+                                            <img className='icon' src={DLike}  alt="Dislikes" /> Dislike
+                                        </span>
+                                    </button>
+                                </div>
+                                <div style={{ width: '33%' }}>
                                     <button className='hover-button' onClick={handleCommentsClick}>
                                         <span>
                                             <img className='icon' src={comments} alt="Comments" /> Comment
@@ -148,64 +169,64 @@ function CompanyPost({ post, userId,onDelete }) {
                                 </div>
 
                             </div>
-                              
-                            
 
 
-                            
+
+
+
 
 
 
 
                         </div>
                         {showCommentSection && (
-  <div style={{ width: '100%' }}>
-    {/* Add comment section here */}
-    <textarea
-      rows="2"
-      placeholder="Write a comment"
-      style={{ width: '96%', borderRadius: '20px', marginLeft: '2%' }}
-      value={newComment}
-      onChange={handleCommentChange}
-    ></textarea>
-    <button
-      style={{ width: '25%', borderRadius: '20px', marginLeft: '2%' }}
-      onClick={handleCommentSubmit}
-    >
-      Post Comment
-    </button>
-    <br />
-    <label>&nbsp; Comments</label>
-    {/* Display all other comments */}
-    {commentList.map(comment => (
-      <div
-        key={comment._id}
-        className="user-info-container-v2"
-        style={{ marginBottom: '5px', width: '96%', marginLeft: '2%' }}
-      >
-        <p style={{ marginLeft: '15px' }}>
-          <b>
-            {comment.author ? (
-              comment.author.name
-                ? comment.author.name
-                : `${comment.author.firstName || ''} ${comment.author.lastName || ''}`
-            ) : (
-              'Unknown Author'
-            )}
-          </b>
-          <br />
-          <span style={{ color: 'gray', fontSize: 'smaller', marginTop: '-150px' }}>
-            {formatDate(comment.createdAt)}
-          </span>
-          <br />
-          {comment.content}
-        </p>
-      </div>
-    ))}
-  </div>
-)}
+                            <div style={{ width: '100%' }}>
+                                {/* Add comment section here */}
+                                <textarea
+                                    rows="2"
+                                    placeholder="Write a comment"
+                                    style={{ width: '96%', borderRadius: '20px', marginLeft: '2%' }}
+                                    value={newComment}
+                                    onChange={handleCommentChange}
+                                ></textarea>
+                                <button
+                                    style={{ width: '25%', borderRadius: '20px', marginLeft: '2%' }}
+                                    onClick={handleCommentSubmit}
+                                >
+                                    Post Comment
+                                </button>
+                                <br />
+                                <label>&nbsp; Comments</label>
+                                {/* Display all other comments */}
+                                {commentList.map(comment => (
+                                    <div
+                                        key={comment._id}
+                                        className="user-info-container-v2"
+                                        style={{ marginBottom: '5px', width: '96%', marginLeft: '2%' }}
+                                    >
+                                        <p style={{ marginLeft: '15px' }}>
+                                            <b>
+                                                {comment.author ? (
+                                                    comment.author.name
+                                                        ? comment.author.name
+                                                        : `${comment.author.firstName || ''} ${comment.author.lastName || ''}`
+                                                ) : (
+                                                    'Unknown Author'
+                                                )}
+                                            </b>
+                                            <br />
+                                            <span style={{ color: 'gray', fontSize: 'smaller', marginTop: '-150px' }}>
+                                                {formatDate(comment.createdAt)}
+                                            </span>
+                                            <br />
+                                            {comment.content}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-  
+
 
 
                     </div>

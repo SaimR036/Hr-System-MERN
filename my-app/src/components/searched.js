@@ -95,7 +95,7 @@ function Search()
             
             <div className='col-md-9 truncate offset-md-0 col-9 col-sm-9 mt-1'>
                 <div className='d-flex align-items-center'>
-                    <button className=' truncate col-md-7 offset-md-0 col-sm-7 ' onClick={navig}>{item.Name}</button>
+                    <button className=' truncate col-md-7 offset-md-0 col-sm-7 ' onClick={()=>{navig(item._id)}}>{item.Name}</button>
                     {item.flag==0?
                     <p className='col-2 d-flex offset-3 align-items-center justify-content-center offset-md-2 rounded'>Invited</p>:
                     <button onClick={() => req(item.flag,item._id)} className='col-2 offset-3 d-flex align-items-center justify-content-center offset-md-3 rounded'> 

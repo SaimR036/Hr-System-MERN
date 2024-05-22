@@ -55,6 +55,8 @@ function CPPosts({ userid, displayButton }) {
 
       if (response.status === 201) {
         setShowModal(false);
+        const response = await axios.get(`http://localhost:3001/Cp/${userid}`);
+        setPosts(response.data);
         setPosts([response.data, ...posts]); // Add the new post to the list of posts
       } else {
         console.error('Failed to create post:', response.data.message);
@@ -149,7 +151,7 @@ function CPPosts({ userid, displayButton }) {
               </div>
               {posts.length > 0 && (
                 <div className="text-center">
-                  <button className="showall" onClick={() => navigate(`/allCompanyposts/${userid}`)}>
+                  <button className="showall" onClick={() => navigate(`/allcompposts/${userid}`)}>
                     Show All Posts -&gt;
                   </button>
                 </div>

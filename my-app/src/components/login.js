@@ -2,6 +2,8 @@ import axios from 'axios';
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './login.css';
+import { jwtDecode } from 'jwt-decode';
+
 
 export const Login = () => {
     const [formData, setFormData] = useState({
@@ -29,8 +31,15 @@ export const Login = () => {
             const response = await axios.post('http://localhost:3001/login', formData, { withCredentials: true });
             const token = response.data.token;
             localStorage.setItem('token', token);
+            const decodedToken = jwtDecode(token);
+            const userType = decodedToken.userType;
             setIsLoggedIn(true);
-            navigate('/Home', { replace: true });
+            console.log("user type:", userType);
+            if (userType === 'user') {
+                navigate('/myprofile', { replace: true }); // Navigate to user profile
+              } else {
+                navigate('/mycompanyprofile', { replace: true }); // Navigate to company profile
+              }
             alert('Login successful');
         } catch (error) {
             console.error('Login Error:', error);

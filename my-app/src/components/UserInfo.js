@@ -20,7 +20,8 @@ function UserInfo({ user, loading, displayButton }) {
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
     Headline: user?.Headline || '',
-    location: user?.location || ''
+    location: user?.location || '',
+    Photo: user?.logo || ''
   });
 
   // Function to handle opening the modal for editing user info
@@ -28,6 +29,21 @@ function UserInfo({ user, loading, displayButton }) {
     setShowModal(true);
   };
 
+
+  const handleLogoChange = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64Image = reader.result;
+      setEditedUser((prevState) => ({
+        ...prevState,
+        Photo: base64Image,
+      }));
+    };
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
   // Function to handle saving edited user info
   const handleEditUserInfo = async () => {
     try {
@@ -62,11 +78,11 @@ function UserInfo({ user, loading, displayButton }) {
                   <p className='Heading'>{user?.Headline || ''}</p>
                   <p className='Location'>{user?.location || ''}</p>
                   <p className='Connections'>{countConnections()} Connections</p>
-                  {displayButton && (
+                  {!displayButton && (
                     <button className="btn btn-primary">Send Message</button>
                   )}
                   &nbsp;
-                  {displayButton && (
+                  {!displayButton && (
                     <button className="btn btn-primary">Follow</button>
                   )}
                 </div>
@@ -91,6 +107,10 @@ function UserInfo({ user, loading, displayButton }) {
                           <br />
                           <label className='bold-label'>Location:</label><br />
                           <input type='text' className='full-width' value={editedUser.location} onChange={(e) => setEditedUser({ ...editedUser, location: e.target.value })} />
+
+                          <br />
+                          <label className='bold-label'>Profile Picture:</label><br />
+                          <input type='file' accept='image/*' onChange={handleLogoChange} />
                         </Modal.Body>
                         <Modal.Footer>
                           <Button variant="secondary" onClick={() => setShowModal(false)}>

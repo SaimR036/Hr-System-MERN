@@ -7,10 +7,11 @@ const postSchema = new mongoose.Schema({
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'companies', required: true },
   createdAt: { type: Date, default: Date.now },
   likes: [{ type: mongoose.Schema.Types.ObjectId }],
+  dislikes: [{ type: mongoose.Schema.Types.ObjectId}],
   comments: [{
     content: { type: String, required: true },
     author: { type: mongoose.Schema.Types.ObjectId, required: true }, // Store the ObjectId of the author
-    authorType: { type: String, enum: ['users', 'companies'], required: true }, // Indicate the type of author
+    authorType: { type: String, enum: ['iqrausers', 'companies'], required: true }, // Indicate the type of author
     createdAt: { type: Date, default: Date.now }
   }]
 });
