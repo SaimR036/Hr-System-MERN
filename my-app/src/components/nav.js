@@ -33,6 +33,10 @@ function Navi()
     {
       navigate('/myNetwork')
     }
+    function navchat()
+    {
+      navigate('/chat')
+    }
     function nav()
     {
       var val = inputRef.current.value;
@@ -100,6 +104,17 @@ function Navi()
     
   </form>
       <ul class="navbar-nav">
+        <li class="nav-item active">
+    <button className='btn '>
+    <div className="d-flex flex-column align-items-center">
+    <span className="col-3 d-flex align-items-center justify-content-center" onClick={navchat} style={{ height: '25px', width: '25px' }}>
+      <img src={post} style={{ height: '100%' }} alt="Rounded" />
+    
+    </span>
+    <p style={{ fontSize:'12px' }} className="m-0">Chats</p>
+  </div>
+  </button>
+  </li>
       <li class="nav-item active">
     <button className='btn '>
     <div className="d-flex flex-column align-items-center">
