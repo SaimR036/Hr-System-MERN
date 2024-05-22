@@ -15,6 +15,9 @@ function JobPost({ company, displayButton }) {
     const [mediaFile, setMediaFile] = useState('');
     const [showModal, setShowModal] = useState(false);
 
+
+    console.log("in job postttt:",company);
+
     useEffect(() => {
         const fetchPosts = async () => {
             try {
@@ -47,6 +50,7 @@ function JobPost({ company, displayButton }) {
                 Description: postContent,
                 Image: mediaFile,
                 Uid: company._id,
+                company: company.name,
                 likes: [],
                 comments: [],
                 Date: currentDate

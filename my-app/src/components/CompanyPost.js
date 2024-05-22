@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import options from '../assets/more.png'
 import heart from '../assets/heart (1).png'
+import { useLocation, useNavigate } from 'react-router-dom';
 import comments from '../assets/comment.png'
 import Like from '../assets/like.png'
 
 import DLike from '../assets/dislike.png'
 
 function CompanyPost({ post, userId, onDelete }) {
+    const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
     const [likes, setLikes] = useState();
     const [showCommentSection, setShowCommentSection] = useState(false);
@@ -39,7 +41,11 @@ function CompanyPost({ post, userId, onDelete }) {
             console.error('Error liking post:', error);
         }
     };
-
+    function navig(uid)
+    {
+      console.log('lop',uid)
+      navigate(`/companyProfile/${uid}`, { state: { id:uid,display:false } })
+    }
     const handleLikeClick = async () => {
         try {
             // Send a request to update likes for the post
@@ -110,7 +116,7 @@ function CompanyPost({ post, userId, onDelete }) {
 
                             <div className='leftie'>
                                 <p className='author-intro-v2'>
-                                    <b style={{ fontSize: 'large', color: 'black' }}>{post.author.name} </b>
+                                    <b style={{ fontSize: 'large', color: 'black' }}  onClick={()=>{navig(post.author._id)}}>{post.author.name} </b>
                                     <br />
                                     {post.author.tagline}<br />
 

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import options from '../assets/more.png'
 import heart from '../assets/heart (1).png'
@@ -8,6 +9,7 @@ import Like from '../assets//like.png'
 import DLike from '../assets/dislike.png'
 
 function Post({ post, userId,onDelete }) {
+    const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
     const [likes, setLikes] = useState();
     const [showCommentSection, setShowCommentSection] = useState(false);
@@ -80,6 +82,12 @@ function Post({ post, userId,onDelete }) {
         }
     };
 
+    function navig(uid)
+  {
+    console.log('lop',uid)
+    navigate(`/other/${uid}`, { state: { id:uid,display:false } })
+  }
+    
 
 
     const handleDeletePost = async () => {
@@ -108,7 +116,7 @@ function Post({ post, userId,onDelete }) {
 
                             <div className='leftie'>
                                 <p className='author-intro-v2'>
-                                    <b style={{ fontSize: 'large', color: 'black' }}>{post.author.firstName} {post.author.lastName} </b>
+                                    <b style={{ fontSize: 'large', color: 'black' }} onClick={()=>{navig(post.author._id)}}>{post.author.firstName} {post.author.lastName} </b>
                                     <br />
                                     {post.author.Headline}<br />
 

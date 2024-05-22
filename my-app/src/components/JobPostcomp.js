@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Modal, Button } from 'react-bootstrap'; // Import Modal and Button components
+import { Modal, Button } from 'react-bootstrap';
 import options from '../assets/more.png';
-
-function JobPostcomp({ post, userId, onDelete , displayButton}) {
+import { useNavigate } from 'react-router-dom';
+import  { ResumeItem }  from './ResumeItem'
+function JobPostcomp({ post, userId, displayButton }) {
+    const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
     const [user, setUser] = useState(null);
-    const [selectedFiles, setSelectedFiles] = useState([]);
-    const [uploadStatus, setUploadStatus] = useState('');
-    const [showModal, setShowModal] = useState(false); // State to manage modal visibility
-    const [loading, setLoading] = useState(true); // State to manage loading status
+    const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [resumes, setResumes] = useState([]);
+    const [loadingResumes, setLoadingResumes] = useState(false);
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -21,28 +23,30 @@ function JobPostcomp({ post, userId, onDelete , displayButton}) {
             try {
                 const response = await axios.get(`/singlecomp/${userId}`);
                 setUser(response.data);
-                setLoading(false); // Update loading state when user data is fetched
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
         };
-    
+
         fetchUser();
     }, [userId]);
 
-    const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        setSelectedFiles(files);
-    };
-
-    const uploadFiles = async () => {
+    const fetchResumes = async () => {
+        setLoadingResumes(true);
         try {
-            // Upload files logic
+            const response = await axios.get(`/jobs/${post._id}/resumes`);
+            setResumes(response.data);
         } catch (error) {
-            console.error('Error uploading resumes:', error);
-            setUploadStatus('Failed to upload resumes');
+            console.error('Error fetching resumes:', error);
+        } finally {
+            setLoadingResumes(false);
         }
     };
+
+    function navig(uid) {
+        navigate(`/companyProfile/${uid}`, { state: { id: uid, display: false } });
+    }
 
     const handleDeletePost = async () => {
         try {
@@ -52,9 +56,21 @@ function JobPostcomp({ post, userId, onDelete , displayButton}) {
         }
     };
 
+    const fetchUserName = async (uid) => {
+        try {
+            const response = await axios.get(`/singlecomp/${uid}`);
+            return response.data.name; // Return the user name
+        } catch (error) {
+            console.error('Error fetching user name:', error);
+            return null;
+        }
+    };
+
+
     if (loading) {
-        return <p>Loading...</p>; // Render loading indicator while fetching data
+        return <p>Loading...</p>;
     }
+
     return (
         <div>
             <br />
@@ -64,8 +80,7 @@ function JobPostcomp({ post, userId, onDelete , displayButton}) {
                         <div className="user-details">
                             <div className='leftie'>
                                 <p className='author-intro-v2'>
-                                    <b style={{ fontSize: 'large', color: 'black' }}>{user.name} </b>
-                                    <br />
+                                    <b style={{ fontSize: 'large', color: 'black' }} onClick={() => { navig(user._id) }}>{user.name}</b><br />
                                     {user.tagline}<br />
                                     {formatDate(post.Date)}
                                 </p>
@@ -81,20 +96,45 @@ function JobPostcomp({ post, userId, onDelete , displayButton}) {
                         </div>
                         <div className='par'>
                             <p style={{ marginLeft: '15px' }}>{post.Description}</p>
-                            <img src={post.Image} alt='hdebnj' className='BgImg' />
+                            <img src={post.Image} alt='resume' className='resume-img' style={{marginLeft : '8%'}} />
                             <hr style={{ width: '92%', marginLeft: '4%', marginTop: '5px' }} />
-                            <input type="file" multiple onChange={handleFileChange} />
-                            <button onClick={uploadFiles}>Upload Resumes</button>
-                            {uploadStatus && <p>{uploadStatus}</p>}
                         </div>
 
-                        {displayButton && (<><Button onClick={() => setShowModal(true)}>Show Resumes</Button><Modal show={showModal} onHide={() => setShowModal(false)}> {/* Modal for showing posts */}
-                            {/* Modal Content */}
-                        </Modal></>)}
+                        {displayButton && (
+    <>
+        <Button onClick={() => {
+            setShowModal(true);
+            fetchResumes();
+        }}>Show Resumes</Button>
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+            <Modal.Header closeButton>
+                <Modal.Title>Resumes</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {loadingResumes ? (
+                    <p>Loading resumes...</p>
+                ) : resumes.length ? (
+                    <ul>
+                        {resumes.map((resume) => (
+                            <ResumeItem key={resume._id} resume={resume} />
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No resumes found for this job.</p>
+                )}
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={() => setShowModal(false)}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    </>
+)}
+
                     </div>
                 </div>
             </div>
-            
         </div>
     );
 }

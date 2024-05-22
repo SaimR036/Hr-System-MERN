@@ -811,11 +811,15 @@ app.post('/makeFriend', async (req, res) => {
 
 app.post('/subResume', async (req, res) => {
   const Uid = req.body.Uid;
+  const Pid = req.body.Pid;
+  const Userid = req.body.Userid;
   const image = req.body.image;
 
   try {
     const newReq = new Resume({
       Uid:Uid,
+      Pid:Pid,
+      Userid,
       image:image
     });
 
@@ -1033,7 +1037,7 @@ app.get('/activity/:userId', async (req, res) => {
     try {
       const userId = req.params.userId;
       // Fetch posts associated with the specified user ID
-      const posts = await Posts.find({ author: userId }).populate('author', 'firstName lastName Headline Photo connections').populate('comments.author', 'firstName lastName headline');; // Populate the author field with user's first and last name
+      const posts = await Posts.find({ author: userId }).populate('author', ' _id firstName lastName Headline Photo connections').populate('comments.author', 'firstName lastName headline');; // Populate the author field with user's first and last name
       console.log(posts)
       res.json(posts);
     } catch (error) {
@@ -1527,7 +1531,7 @@ app.get('/Cp/:userId', async (req, res) => {
 
     // Fetch posts by the specific user
     const userPosts = await CPosts.find({ author: userId })
-      .populate('author', 'name tagline');
+      .populate('author', ' _id name tagline');
 
     console.log("userPosts:", userPosts);
     res.json(userPosts);
@@ -1737,13 +1741,14 @@ app.post('/jobs', async (req, res) => {
   try {
       //const features = Array.from({length: 100}, () => Math.random());
       // Extract data from request body
-      const { Description, Date, Image, Uid, features, resumes } = req.body;
+      const { Description, Date, Image, Uid, company,features, resumes } = req.body;
 
       // Create a new job post instance
       const newJob = new JobModel({
           Description,
           Date,
           Image,
+          company,
           Uid,
           features,
           resumes:[]
@@ -1780,6 +1785,7 @@ app.post('/jobs', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 app.delete('/jobs/:postId', async (req, res) => {
@@ -1828,6 +1834,31 @@ app.post('/upload-resumes/:postId', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+
+
+
+
+
+
+app.get('/jobs/:id/resumes', async (req, res) => {
+  try {
+   
+      const jobId = req.params.id;
+      console.log(jobId);
+      const resumes = await Resume.find({ Pid: jobId });
+
+      if (resumes.length === 0) {
+          return res.status(404).json({ error: 'No resumes found for this job' });
+      }
+
+      res.json(resumes);
+  } catch (error) {
+      console.error('Error fetching resumes:', error);
+      res.status(500).json({ error: 'An error occurred while fetching resumes' });
+  }
+});
+
 
 
 

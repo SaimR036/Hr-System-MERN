@@ -176,7 +176,7 @@ function Activity({ userid, displayButton }) {
                                 )}
                             </div>
 
-                            {!showAll && !loading && posts.length > 2 && (
+                            {!showAll && !loading && posts.length > 0 && (
                                 <div className="text-center">
                                     <button className="showall" onClick={() => navigate(`/allposts/${userid}`)}>Show All Posts -&gt;</button>
                                 </div>
