@@ -20,10 +20,10 @@ const Chat = () => {
 
     const fetchFriends = async () => {
         try {
-            // const token = localStorage.getItem('token');
-            // const decodedToken = jwtDecode(token);
-            // const userId = decodedToken.userId;
-            const userId = '6646e55d25c89a0176f6fd32'
+             const token = localStorage.getItem('token');
+             const decodedToken = jwtDecode(token);
+             const userId = decodedToken.userId;
+            
             const response = await axios.get(`http://localhost:3001/getfriend/${userId}`);
             const friendIds = response.data;
             //console.log(friendIds);
@@ -48,21 +48,27 @@ const Chat = () => {
             // const token = localStorage.getItem('token');
             // const decodedToken = jwtDecode(token);
             // const userId = decodedToken.userId;
-            const userId = '6646e55d25c89a0176f6fd32'
-
+            const token = localStorage.getItem('token');
+             const decodedToken = jwtDecode(token);
+             const userId = decodedToken.userId;
+            console.log('FASDASD',selectedFriend)
             const response = await axios.get(`http://localhost:3001/messages/${selectedFriend}`);
             const messages = response.data;
             console.log(messages)
-            const messagesWithUsernames = await Promise.all(messages.map(async (message) => {
-                const senderResponse = await axios.get(`http://localhost:3001/users/${message.sender_id}`);
-                const sender = senderResponse.data;
-                return { ...message, sender_username: sender.username };
-            }));
-
-            setMessages(messagesWithUsernames);
+            
         } catch (error) {
             console.error('Fetch Messages Error:', error);
         }
+        
+        const messagesWithUsernames = await Promise.all(messages.map(async (message) => {
+            const senderResponse = await axios.get(`http://localhost:3001/users/${message.sender_id}`);
+            const sender = senderResponse.data;
+            return { ...message, sender_username: sender.username };
+        }));
+    
+    
+
+        setMessages(messagesWithUsernames);
     };
 
     const handleFriendClick = (friendId) => {
@@ -77,7 +83,9 @@ const Chat = () => {
             // const token = localStorage.getItem('token');
             // const decodedToken = jwtDecode(token);
             // const senderId = decodedToken.userId;
-            const senderId = '6646e55d25c89a0176f6fd32'
+            const token = localStorage.getItem('token');
+             const decodedToken = jwtDecode(token);
+             const senderId = decodedToken.userId;
 
             await axios.post('http://localhost:3001/send-message', {
                 sender_id: senderId,
