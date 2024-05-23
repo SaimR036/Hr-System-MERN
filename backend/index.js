@@ -42,12 +42,7 @@ const Resume = require('./models/resumes.js');
 mongoose.connect('mongodb+srv://nageen12:nageen12345@cluster0.bapcvgb.mongodb.net/WebProject', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("MongoDB connected successfully");
-   
-
-        
-        
-      
-        
+          
         
     })
     .catch((err) => {
@@ -276,24 +271,25 @@ app.post("/send-message", async (req, res) => {
 
 
 
-app.get("/messages/:userId", async (req, res) => {
+app.post("/messages", async (req, res) => {
   try {
-      const { userId } = req.params;
-
-      const messages = await Chat.find({
-          $or: [
-              { sender_id: userId },
-              { receiver_id: userId }
-          ]
-      });
-
+    const userId = req.body.userId;
+    const Fid = req.body.friendId
+       console.log('userid',userId);
+       console.log('Fid',Fid);
+       const messages = await Chat.find({
+        $or: [
+            { sender_id: userId, receiver_id: Fid },
+            { sender_id: Fid, receiver_id: userId }
+        ]
+    });
+//console.log('messages',messages);
       res.status(200).json(messages);
   } catch (error) {
       console.error('Retrieve Messages Error:', error);
       res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 
 app.get('/users/:userId', async (req, res) => {
@@ -526,6 +522,7 @@ async function checkreqs(id)
 app.get('/fetchSimilar/:text', async (req, res) => {
     const searchQuery = req.params.text;
     const data  = await Users.find({}).maxTimeMS(30000)
+    
     console.log(searchQuery)
     const options = {
       keys: ['Name'],
@@ -534,6 +531,8 @@ app.get('/fetchSimilar/:text', async (req, res) => {
     };
     const fuse = new Fuse(data, options);
     const result = fuse.search(searchQuery);
+
+    
     for(var item of result)
       {
         var check  = await checkreqs(item['item']['id'])
@@ -566,7 +565,8 @@ app.get('/fetchSimilar/:text', async (req, res) => {
               }
               
       }
-    console.log(result)
+
+
     res.json(result);
   });
 app.get('/ai', async (req, res) => {
@@ -576,12 +576,12 @@ app.get('/ai', async (req, res) => {
     var b=[]
     const users  = await Users.find({}).maxTimeMS(30000)
     const jobs = await JobModel.find({});
-    let Y = new Array(users.length-1).fill().map(() => new Array(jobs.length).fill(0));
-    let R = new Array(users.length-1).fill().map(() => new Array(jobs.length).fill(0));
+    let Y = new Array(users.length).fill().map(() => new Array(jobs.length).fill(0));
+    let R = new Array(users.length).fill().map(() => new Array(jobs.length).fill(0));
     var k=0;
     for(var user of users)
       {
-        if(k!=users.length-1)
+        if(k!=users.length)
           {
             console.log(user['b'])
 
@@ -1033,7 +1033,7 @@ app.get('/singleuser/:userid', async (req, res) => {
 });
 
 app.get('/activity/:userId', async (req, res) => {
-  console.log("here in /activity");
+  console.log("ALSDKJAIODHJAIOSDIOJASDHIOASDJIJSDIJO");
     try {
       const userId = req.params.userId;
       // Fetch posts associated with the specified user ID
@@ -1047,6 +1047,7 @@ app.get('/activity/:userId', async (req, res) => {
   });
 
   
+
 
   app.get('/experience/:userId',async(req,res)=>{
 
@@ -1365,7 +1366,12 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
   
       // Add the user's ObjectId to the likes array
       post.likes.push(userId);
-  
+      await RatModel.findOneAndUpdate(
+        { Pid: postId, Uid: userId },
+        { $set: { Val: 1 } },
+         // This option returns the updated document
+      );
+
       // Save the updated post document
       await post.save();
   
@@ -1403,7 +1409,11 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
   
       // Add the user's ObjectId to the dislikes array
       post.dislikes.push(userId);
-  
+      await RatModel.findOneAndUpdate(
+        { Pid: postId, Uid: userId },
+        { $set: { Val: 0 } },
+         // This option returns the updated document
+      );
       // Save the updated post document
       await post.save();
   
@@ -1761,9 +1771,9 @@ app.get('/jobs/:companyId', async (req, res) => {
 
 app.post('/jobs', async (req, res) => {
   try {
-      //const features = Array.from({length: 100}, () => Math.random());
+      const features = Array.from({length: 100}, () => Math.random());
       // Extract data from request body
-      const { Description, Date, Image, Uid, company,features, resumes } = req.body;
+      const { Description, Date, Image, Uid, company, resumes } = req.body;
 
       // Create a new job post instance
       const newJob = new JobModel({
@@ -1780,12 +1790,8 @@ app.post('/jobs', async (req, res) => {
 
       // Save the job post to the database
       const savedJob = await newJob.save();
-      const use = await JobModel.find({
-        Uid:Uid
-    }).maxTimeMS(30000);
-
-        console.log(use)
-        let Pid= use[0]['_id']
+      
+        let Pid= savedJob['_id']
         console.log(Pid)
     let Val=-1;
         const users= await Users.find({});

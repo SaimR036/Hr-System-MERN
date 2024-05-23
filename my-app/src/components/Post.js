@@ -7,9 +7,9 @@ import heart from '../assets/heart (1).png'
 import comments from '../assets/comment.png'
 import Like from '../assets//like.png'
 import DLike from '../assets/dislike.png'
+import { jwtDecode } from 'jwt-decode';
 
 function Post({ post, userId,onDelete }) {
-    console.log("postttttttttttttttttttt",post);
     const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
     const [likes, setLikes] = useState();
@@ -20,7 +20,7 @@ function Post({ post, userId,onDelete }) {
     const [commentList, setCommentList] = useState(post.comments);
 
 
-
+    
     useEffect(() => {
         setLikes(post.likes.length);
     }, [post]);

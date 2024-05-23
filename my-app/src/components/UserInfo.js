@@ -78,13 +78,8 @@ function UserInfo({ user, loading, displayButton }) {
                   <p className='Heading'>{user?.Headline || ''}</p>
                   <p className='Location'>{user?.location || ''}</p>
                   <p className='Connections'>{countConnections()} Connections</p>
-                  {!displayButton && (
-                    <button className="btn btn-primary">Send Message</button>
-                  )}
-                  &nbsp;
-                  {!displayButton && (
-                    <button className="btn btn-primary">Follow</button>
-                  )}
+                
+                  
                 </div>
                 <div className='right'>
                   {displayButton && (

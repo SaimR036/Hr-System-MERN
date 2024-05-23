@@ -36,9 +36,9 @@ export const Login = () => {
             setIsLoggedIn(true);
             console.log("user type:", userType);
             if (userType === 'user') {
-                navigate('/myprofile', { replace: true }); // Navigate to user profile
+                navigate('/Home', { replace: true }); // Navigate to user profile
               } else {
-                navigate('/mycompanyprofile', { replace: true }); // Navigate to company profile
+                navigate('/Home', { replace: true }); // Navigate to company profile
               }
             alert('Login successful');
         } catch (error) {
