@@ -1356,20 +1356,26 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
         return res.status(400).json({ error: 'User already liked the post' });
       }
   
+      // Check if the user has disliked the post
+      const dislikeIndex = post.dislikes.indexOf(userId);
+      if (dislikeIndex !== -1) {
+        // Remove the dislike
+        post.dislikes.splice(dislikeIndex, 1);
+      }
+  
       // Add the user's ObjectId to the likes array
       post.likes.push(userId);
   
       // Save the updated post document
       await post.save();
   
-      res.status(200).json({ message: 'Post liked successfully' , post});
+      res.status(200).json({ message: 'Post liked successfully', post });
     } catch (error) {
       console.error('Error liking post:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-
-
   });
+  
   app.post('/dislike/:postId', async (req, res) => {
     const { postId } = req.params;
     const { userId } = req.body; // Assuming you're sending the userId in the request body
@@ -1383,25 +1389,31 @@ app.delete('/skills/:userId/:skillId', async (req, res) => {
         return res.status(404).json({ error: 'Post not found' });
       }
   
-      // Check if the user already liked the post
+      // Check if the user already disliked the post
       if (post.dislikes.includes(userId)) {
         return res.status(400).json({ error: 'User already disliked the post' });
       }
   
-      // Add the user's ObjectId to the likes array
+      // Check if the user has liked the post
+      const likeIndex = post.likes.indexOf(userId);
+      if (likeIndex !== -1) {
+        // Remove the like
+        post.likes.splice(likeIndex, 1);
+      }
+  
+      // Add the user's ObjectId to the dislikes array
       post.dislikes.push(userId);
   
       // Save the updated post document
       await post.save();
   
-      res.status(200).json({ message: 'Post liked successfully' , post});
+      res.status(200).json({ message: 'Post disliked successfully', post });
     } catch (error) {
-      console.error('Error liking post:', error);
+      console.error('Error disliking post:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-
-
   });
+  
 
 
   app.post('/comment/:postId', async (req, res) => {
@@ -1615,20 +1627,25 @@ app.post('/Companylike/:postId', async (req, res) => {
       return res.status(400).json({ error: 'User already liked the post' });
     }
 
+    // Check if the user already disliked the post
+    if (post.dislikes.includes(userId)) {
+      // Remove the user's dislike
+      post.dislikes = post.dislikes.filter(id => id.toString() !== userId);
+    }
+
     // Add the user's ObjectId to the likes array
     post.likes.push(userId);
 
     // Save the updated post document
     await post.save();
 
-    res.status(200).json({ message: 'Post liked successfully' , post});
+    res.status(200).json({ message: 'Post liked successfully', post });
   } catch (error) {
     console.error('Error liking post:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-
-
 });
+
 
 app.post('/CompanyDlike/:postId', async (req, res) => {
   const { postId } = req.params;
@@ -1643,25 +1660,30 @@ app.post('/CompanyDlike/:postId', async (req, res) => {
       return res.status(404).json({ error: 'Post not found' });
     }
 
-    // Check if the user already liked the post
-    if (post.likes.includes(userId)) {
-      return res.status(400).json({ error: 'User already Disliked the post' });
+    // Check if the user already disliked the post
+    if (post.dislikes.includes(userId)) {
+      return res.status(400).json({ error: 'User already disliked the post' });
     }
 
-    // Add the user's ObjectId to the likes array
-    post.likes.push(userId);
+    // Check if the user already liked the post
+    if (post.likes.includes(userId)) {
+      // Remove the user's like
+      post.likes = post.likes.filter(id => id.toString() !== userId);
+    }
+
+    // Add the user's ObjectId to the dislikes array
+    post.dislikes.push(userId);
 
     // Save the updated post document
     await post.save();
 
-    res.status(200).json({ message: 'Post liked successfully' , post});
+    res.status(200).json({ message: 'Post disliked successfully', post });
   } catch (error) {
-    console.error('Error liking post:', error);
+    console.error('Error disliking post:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-
-
 });
+
 
 
 app.post('/Companycomment/:postId', async (req, res) => {
@@ -1751,7 +1773,9 @@ app.post('/jobs', async (req, res) => {
           company,
           Uid,
           features,
-          resumes:[]
+          resumes:[],
+          likes: [], // Initialize likes as an empty array
+        dislikes: [] // Initialize dislikes as an empty array
       });
 
       // Save the job post to the database
@@ -1863,6 +1887,122 @@ app.get('/jobs/:id/resumes', async (req, res) => {
 
 
 
+app.delete('/jobs/:jobId', async (req, res) => {
+  try {
+    // Extract job ID from request parameters
+    const { jobId } = req.params;
+
+    // Find and delete the job with the specified ID from the database
+    const deletedJob = await JobModel.findByIdAndDelete(jobId);
+
+    if (!deletedJob) {
+      // If no job is found, send a 404 response
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Send a success response with the deleted job information
+    res.status(200).json({ message: 'Job deleted successfully', job: deletedJob });
+  } catch (error) {
+    // Handle errors
+    console.error('Error deleting job:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+app.post('/job/:postId/like', async (req, res) => {
+  const { postId } = req.params;
+  const { userId } = req.body;
+  console.log("in job like");
+
+  try {
+      // Retrieve the job post document
+      const post = await JobModel.findById(postId);
+
+      // Check if the job post exists
+      if (!post) {
+          return res.status(404).json({ error: 'Job post not found' });
+      }
+
+      // Check if user already liked the post
+      const userAlreadyLiked = post.likes.includes(userId);
+
+      if (!userAlreadyLiked) {
+          // Add userId to the likes array and remove from dislikes if present
+          if (post.dislikes.includes(userId)) {
+              post.dislikes = post.dislikes.filter(id => id !== userId);
+          }
+          post.likes.push(userId);
+
+          // Save the updated job post document
+          const updatedPost = await post.save();
+
+          // Respond with success message
+          return res.status(200).json({ message: 'Post liked successfully', updatedPost });
+      } else {
+          // User already liked the post, so remove the like
+          post.likes = post.likes.filter(id => id !== userId);
+
+          // Save the updated job post document
+          const updatedPost = await post.save();
+
+          // Respond with information message
+          return res.status(200).json({ message: 'Post like removed', updatedPost });
+      }
+  } catch (error) {
+      console.error('Error liking job post:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+app.post('/job/:postId/dislike', async (req, res) => {
+  const { postId } = req.params;
+  const { userId } = req.body;
+  console.log("in job dislike");
+
+  try {
+      // Retrieve the job post document
+      const post = await JobModel.findById(postId);
+
+      // Check if the job post exists
+      if (!post) {
+          return res.status(404).json({ error: 'Job post not found' });
+      }
+
+      // Check if user already disliked the post
+      const userAlreadyDisliked = post.dislikes.includes(userId);
+
+      if (!userAlreadyDisliked) {
+          
+
+          // Remove userId from the likes array if it exists
+          post.likes = post.likes.filter(id => id !== userId);
+          // Add userId to the dislikes array
+          post.dislikes.push(userId);
+
+          // Save the updated job post document
+          const updatedPost = await post.save();
+
+          // Respond with success message
+          return res.status(200).json({ message: 'Post disliked successfully', updatedPost });
+      } else {
+          // User already disliked the post, so remove the dislike
+          post.dislikes = post.dislikes.filter(id => id !== userId);
+
+          // Save the updated job post document
+          const updatedPost = await post.save();
+
+          // Respond with information message
+          return res.status(200).json({ message: 'Post dislike removed', updatedPost });
+      }
+  } catch (error) {
+      console.error('Error disliking job post:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 

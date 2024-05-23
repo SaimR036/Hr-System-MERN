@@ -9,6 +9,7 @@ import Like from '../assets//like.png'
 import DLike from '../assets/dislike.png'
 
 function Post({ post, userId,onDelete }) {
+    console.log("postttttttttttttttttttt",post);
     const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
     const [likes, setLikes] = useState();

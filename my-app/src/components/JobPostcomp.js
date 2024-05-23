@@ -3,7 +3,11 @@ import axios from 'axios';
 import { Modal, Button } from 'react-bootstrap';
 import options from '../assets/more.png';
 import { useNavigate } from 'react-router-dom';
-import  { ResumeItem }  from './ResumeItem'
+import { ResumeItem } from './ResumeItem';
+import Like from '../assets//like.png'
+import DLike from '../assets/dislike.png'
+import heart from '../assets/heart (1).png'
+
 function JobPostcomp({ post, userId, displayButton }) {
     const navigate = useNavigate();
     const [showOptions, setShowOptions] = useState(false);
@@ -12,6 +16,11 @@ function JobPostcomp({ post, userId, displayButton }) {
     const [loading, setLoading] = useState(true);
     const [resumes, setResumes] = useState([]);
     const [loadingResumes, setLoadingResumes] = useState(false);
+    const [error, setError] = useState(null);
+
+    const [likes, setLikes] = useState(0);
+    const [showCommentSection, setShowCommentSection] = useState(false);
+    const [dislikes, setDisLikes] = useState();
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -19,6 +28,7 @@ function JobPostcomp({ post, userId, displayButton }) {
     };
 
     useEffect(() => {
+        setLikes(post.likes.length);
         const fetchUser = async () => {
             try {
                 const response = await axios.get(`/singlecomp/${userId}`);
@@ -26,11 +36,13 @@ function JobPostcomp({ post, userId, displayButton }) {
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching user data:', error);
+                setError('Error fetching user data');
+                setLoading(false);
             }
         };
 
         fetchUser();
-    }, [userId]);
+    }, [userId,post]);
 
     const fetchResumes = async () => {
         setLoadingResumes(true);
@@ -39,36 +51,70 @@ function JobPostcomp({ post, userId, displayButton }) {
             setResumes(response.data);
         } catch (error) {
             console.error('Error fetching resumes:', error);
+            setError('Error fetching resumes');
         } finally {
             setLoadingResumes(false);
         }
     };
 
-    function navig(uid) {
-        navigate(`/companyProfile/${uid}`, { state: { id: uid, display: false } });
-    }
-
-    const handleDeletePost = async () => {
+    const handleLikeClick = async () => {
         try {
-            // Delete post logic
+            // Send a request to update likes for the post
+            const response = await axios.post(`/job/${post._id}/like`, { userId });
+            // Assuming the backend responds with the updated post data
+            const updatedPost = response.data;
+            console.log("handle like: ", updatedPost)
+            setLikes(updatedPost.likes.length);
+            
+            // Update the post state with the updated likes
+            // setPost(updatedPost); // Assuming you have a state to hold the post data
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
+
+    const handleDisLikeClick = async () => {
+        try {
+            // Send a request to update likes for the post
+            const response = await axios.post(`/job/${post._id}/dislike`, { userId });
+            // Assuming the backend responds with the updated post data
+            const updatedPost = response.data;
+            console.log("handle dislike: ", updatedPost)
+            setLikes(updatedPost.likes.length);
+            
+            // Update the post state with the updated likes
+            // setPost(updatedPost); // Assuming you have a state to hold the post data
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
+    const handleDeletePost = async (jobId) => {
+        try {
+            await axios.delete(`/jobs/${jobId}`);
+          
         } catch (error) {
             console.error('Error deleting post:', error);
+            setError('Error deleting post');
         }
     };
 
     const fetchUserName = async (uid) => {
         try {
             const response = await axios.get(`/singlecomp/${uid}`);
-            return response.data.name; // Return the user name
+            return response.data.name;
         } catch (error) {
             console.error('Error fetching user name:', error);
             return null;
         }
     };
 
-
     if (loading) {
         return <p>Loading...</p>;
+    }
+    function navig(uid)
+    {
+      console.log('lop',uid)
+      navigate(`/companyProfile/${uid}`, { state: { id:uid,display:false } })
     }
 
     return (
@@ -89,52 +135,74 @@ function JobPostcomp({ post, userId, displayButton }) {
                                 <img style={{ width: '20px' }} src={options} alt="Options" onClick={() => setShowOptions(!showOptions)} />
                                 {showOptions && (
                                     <div>
-                                        <button onClick={handleDeletePost}>Delete</button>
+                                        <button onClick={() => handleDeletePost(post._id)}>Delete</button>
                                     </div>
                                 )}
                             </div>
                         </div>
                         <div className='par'>
                             <p style={{ marginLeft: '15px' }}>{post.Description}</p>
-                            <img src={post.Image} alt='resume' className='resume-img' style={{marginLeft : '8%'}} />
+                            <img src={post.Image} alt='resume' className='resume-img' style={{ marginLeft: '8%' }} />
                             <hr style={{ width: '92%', marginLeft: '4%', marginTop: '5px' }} />
                         </div>
+                        <div style={{ width: '45%' }}> <img className='hearticon' src={heart} alt="Likes" />
+                                    <span> {likes}</span></div>
+                        <div style={{ display: 'flex', width: '96%', margin: 'auto' }} >
+
+
+                                <div style={{ width: '50%' }}>
+                                    <button className='hover-button' onClick={handleLikeClick}>
+                                        <span>
+                                            <img className='icon' src={Like} alt="Likes"  /> Like
+                                        </span>
+                                    </button>
+                                </div>
+                                <div style={{ width: '50%' }}>
+                                    <button className='hover-button' onClick={handleDisLikeClick} >
+                                        <span>
+                                            <img className='icon' src={DLike}  alt="Dislikes" /> Dislike
+                                        </span>
+                                    </button>
+                                </div>
+                              
+
+                            </div>
 
                         {displayButton && (
-    <>
-        <Button onClick={() => {
-            setShowModal(true);
-            fetchResumes();
-        }}>Show Resumes</Button>
-        <Modal show={showModal} onHide={() => setShowModal(false)}>
-            <Modal.Header closeButton>
-                <Modal.Title>Resumes</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                {loadingResumes ? (
-                    <p>Loading resumes...</p>
-                ) : resumes.length ? (
-                    <ul>
-                        {resumes.map((resume) => (
-                            <ResumeItem key={resume._id} resume={resume} />
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No resumes found for this job.</p>
-                )}
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowModal(false)}>
-                    Close
-                </Button>
-            </Modal.Footer>
-        </Modal>
-    </>
-)}
-
+                            <>
+                                <Button onClick={() => {
+                                    setShowModal(true);
+                                    fetchResumes();
+                                }}>Show Resumes</Button>
+                                <Modal show={showModal} onHide={() => setShowModal(false)}>
+                                    <Modal.Header closeButton>
+                                        <Modal.Title>Resumes</Modal.Title>
+                                    </Modal.Header>
+                                    <Modal.Body>
+                                        {loadingResumes ? (
+                                            <p>Loading resumes...</p>
+                                        ) : resumes.length ? (
+                                            <ul>
+                                                {resumes.map((resume) => (
+                                                    <ResumeItem key={resume._id} resume={resume} />
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p>No resumes found for this job.</p>
+                                        )}
+                                    </Modal.Body>
+                                    <Modal.Footer>
+                                        <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                            Close
+                                        </Button>
+                                    </Modal.Footer>
+                                </Modal>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
+            {error && <p className="error">{error}</p>}
         </div>
     );
 }

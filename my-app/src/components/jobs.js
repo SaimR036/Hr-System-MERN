@@ -6,6 +6,11 @@ import { fetchJobs } from '../controllers/UsersC';
 import Navi from './nav'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
+import Like from '../assets//like.png'
+import DLike from '../assets/dislike.png'
+import heart from '../assets/heart (1).png'
+
 export function Jobs()
 {
     const navigate = useNavigate();
@@ -14,7 +19,16 @@ export function Jobs()
             const userId = decodedToken.userId;
     const [job,SetJobs]= useState([])
     const [image,setImage] = useState(null)
+
+
+
+    const [likes, setLikes] = useState(0);
+    const [showCommentSection, setShowCommentSection] = useState(false);
+
+
+
     useEffect(()=>{
+        
         async function fetchAndSetJobs() {
             var jobs = await fetchJobs(userId);
             SetJobs(jobs);
@@ -64,7 +78,39 @@ export function Jobs()
 
 }
 
-function profile(uid){
+const handleLikeClick = async (jid) => {
+    try {
+        // Send a request to update likes for the post
+        const response = await axios.post(`/job/${jid}/like`, { userId });
+        // Assuming the backend responds with the updated post data
+        const updatedPost = response.data;
+        console.log("handle like: ", updatedPost)
+        setLikes(updatedPost.likes.length);
+        
+        // Update the post state with the updated likes
+        // setPost(updatedPost); // Assuming you have a state to hold the post data
+    } catch (error) {
+        console.error('Error liking post:', error);
+    }
+};
+
+const handleDisLikeClick = async (jid) => {
+    try {
+        // Send a request to update likes for the post
+        const response = await axios.post(`/job/${jid}/dislike`, { userId });
+        // Assuming the backend responds with the updated post data
+        const updatedPost = response.data;
+        console.log("handle dislike: ", updatedPost)
+        setLikes(updatedPost.likes.length);
+        
+        // Update the post state with the updated likes
+        // setPost(updatedPost); // Assuming you have a state to hold the post data
+    } catch (error) {
+        console.error('Error liking post:', error);
+    }
+};
+
+    function profile(uid){
 
     navigate(`/companyProfile/${uid}`, { state: { id:uid,display:false } })
   }
@@ -99,6 +145,44 @@ function profile(uid){
             <div style={{border:'0.5px inset #d3d3d3',marginTop:'8%',marginBottom:'2%'}}></div>
             <div className='mb-2'>{item['Description']}</div>
             {<img src={item['Image']} style={{border:'1px solid black'}}  className='col-12 rounded mb-2' alt="Rounded" />}
+
+            <div style={{ width: '45%' }}> <img className='hearticon' src={heart} alt="Likes" />
+                                    <span> {item['likes'].length}</span></div>
+            <div style={{ display: 'flex', width: '96%', margin: 'auto' }} >
+
+
+                                <div style={{ width: '50%' }}>
+                                    <button className='hover-button' onClick={() => { handleLikeClick(item._id)}}>
+                                        <span>
+                                            <img className='icon' src={Like} alt="Likes"  /> Like
+                                        </span>
+                                    </button>
+                                </div>
+                                <div style={{ width: '50%' }}>
+                                    <button className='hover-button' onClick={() => { handleDisLikeClick(item._id)}} >
+                                        <span>
+                                            <img className='icon' src={DLike}  alt="Dislikes" /> Dislike
+                                        </span>
+                                    </button>
+                                </div>
+                              
+
+                            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
             </div>
             

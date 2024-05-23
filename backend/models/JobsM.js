@@ -4,6 +4,8 @@ const JobSchema = new mongoose.Schema({
     Date:String,
     Image:[String],
     Uid:String,
+    likes: [{ type: mongoose.Schema.Types.ObjectId }],
+    dislikes: [{ type: mongoose.Schema.Types.ObjectId}],
     features:[Number],
     resumes:[String],
     company:String
