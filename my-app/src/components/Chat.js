@@ -27,7 +27,7 @@ const Chat = () => {
             
             const response = await axios.get(`http://localhost:3001/getfriend/${userId}`);
             const friendIds = response.data;
-            //console.log(friendIds);
+            console.log('FRIEND',friendIds);
             const friendsDetails = await Promise.all(friendIds.map(async (friendId) => {
                 const userResponse = await axios.get(`http://localhost:3001/user/${friendId}`);
                 const user = userResponse.data;
@@ -53,12 +53,15 @@ const Chat = () => {
              const decodedToken = jwtDecode(token);
              const userId = decodedToken.userId;
             console.log('selected',selectedFriend)
-            const response = await axios.get(`http://localhost:3001/messages/${selectedFriend}`);
+            const response =  await axios.post('http://localhost:3001/messages', {
+                userId: userId,
+                friendId: selectedFriend
+            });
             const messages = response.data;
-           // console.log(messages)
+            console.log(messages)
 
             const messagesWithUsernames = await Promise.all(messages.map(async (message) => {
-                console.log('mesg sender');
+                
                 const senderResponse = await axios.get(`http://localhost:3001/users/${message.sender_id}`);
                 const sender = senderResponse.data;
                 console.log('sender');

@@ -20,8 +20,14 @@ export function MyNetwork()
   const decodedToken = jwtDecode(token);
   const id = decodedToken.userId; 
     const [pends,Setpends]  = useState([])
+    const navigate = useNavigate();
     const [dum,setDum] = useState(0)
     const [friends,SetFriends] = useState([])
+    function navig(uid)
+  {
+    console.log('lop',uid)
+    navigate(`/other/${uid}`, { state: { id:uid,display:false } })
+  }
     useEffect(()=>{
       async function getData(id)
       {
@@ -88,8 +94,8 @@ export function MyNetwork()
         
         <div className='col-md-9 truncate offset-md-0 col-9 col-sm-6 mt-2'>
             <div className='d-flex align-items-center'>
-                <div className='truncate col-md-7 offset-md-0 col-sm-6 '>{item.Name}</div>
-                
+                <a onClick={()=>{navig(item._id)}} className=' truncate col-md-7 offset-md-0 col-sm-6 '>{item.Name}</a>
+
             </div>
             <div className='truncate col-md-7 offset-md-0 col-sm-6 '>{item.Headline}</div>
         </div>

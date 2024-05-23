@@ -8,6 +8,7 @@ import ProfileURL from './ProfileURL';
 import Skills from './Skills';
 import Img from './Profimg';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Navi from './nav';
 
 export default function UserProfile({userid,display}) {
   
@@ -41,6 +42,8 @@ export default function UserProfile({userid,display}) {
   }
 
   return (
+    <>
+    <Navi />
     <div className="container-custom col">
       <div className="row">
         <div className="col-md-9">
@@ -58,5 +61,6 @@ export default function UserProfile({userid,display}) {
         </div>
       </div>
     </div>
+    </>
   );
 }

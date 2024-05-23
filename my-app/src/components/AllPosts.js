@@ -53,7 +53,7 @@ function AllPosts({ userId }) {
             <ul>
               {posts.map(post => (
                 <li key={post._id}>
-                      <Post post={post} userId = {user._id} onDelete={handleDelete} />
+                      <Post post={post} userId = {user._id} onDelete={(handleDelete)} />
                 </li>
               ))}
             </ul>
